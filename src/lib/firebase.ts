@@ -15,6 +15,21 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+// Debug: Log para verificar configuración (solo en desarrollo)
+if (import.meta.env.DEV) {
+  console.log('🔥 Firebase Config Debug:', {
+    apiKey: firebaseConfig.apiKey ? '✅ Configurado' : '❌ Faltante',
+    authDomain: firebaseConfig.authDomain ? '✅ Configurado' : '❌ Faltante',
+    projectId: firebaseConfig.projectId ? '✅ Configurado' : '❌ Faltante'
+  });
+}
+
+// Verificar que todas las variables estén configuradas
+if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'demo-api-key') {
+  console.error('❌ FIREBASE CONFIG ERROR: API Key no configurado correctamente');
+  console.error('Variables de entorno disponibles:', import.meta.env);
+}
+
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 
