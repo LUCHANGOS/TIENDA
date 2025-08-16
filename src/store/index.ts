@@ -185,8 +185,9 @@ export const useAppStore = create<StoreState>()(
           set({ loading: true, error: null });
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
           
-          // Simular verificación admin por ahora
-          const isAdmin = email.includes('admin');
+          // Verificación de admin para emails específicos
+          const adminEmails = ['Luisneyra049@gmail.com', 'admin@newtonic3d.com'];
+          const isAdmin = adminEmails.includes(email);
 
           const user: User = {
             uid: userCredential.user.uid,
@@ -423,8 +424,9 @@ export const useAuthListener = () => {
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
-        // Simular verificación admin por ahora
-        const isAdmin = firebaseUser.email?.includes('admin') || false;
+        // Verificación de admin para emails específicos
+        const adminEmails = ['Luisneyra049@gmail.com', 'admin@newtonic3d.com'];
+        const isAdmin = adminEmails.includes(firebaseUser.email!) || false;
 
         const user: User = {
           uid: firebaseUser.uid,
