@@ -164,6 +164,7 @@ export interface AppState {
   user: User | null;
   cart: Cart | null;
   products: Product[];
+  quotes: Quote[];
   categories: ProductCategory[];
   materials: Material[];
   colors: Color[];
@@ -194,6 +195,15 @@ export interface AppActions {
   
   // Cotizaciones
   submitQuote: (quote: Omit<Quote, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => Promise<string>;
+  loadQuotes: () => Promise<void>;
+  updateQuoteStatus: (id: string, status: Quote['status'], adminNotes?: string, estimatedPrice?: number, estimatedDays?: number) => Promise<void>;
+  deleteQuote: (id: string) => Promise<void>;
+  
+  // Configuración (Admin)
+  updateSettings: (updates: Partial<AppSettings>) => Promise<void>;
+  updateMaterials: (materials: Material[]) => Promise<void>;
+  updateColors: (colors: Color[]) => Promise<void>;
+  updateQualities: (qualities: Quality[]) => Promise<void>;
   
   // UI
   setLoading: (loading: boolean) => void;

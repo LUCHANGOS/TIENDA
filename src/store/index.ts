@@ -169,6 +169,7 @@ export const useAppStore = create<StoreState>()(
       user: null,
       cart: null,
       products: [],
+      quotes: [],
       categories: initialCategories,
       materials: initialMaterials,
       colors: initialColors,
@@ -184,25 +185,12 @@ export const useAppStore = create<StoreState>()(
         try {
           set({ loading: true, error: null });
           
+          // Login con Firebase Authentication
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          
           // Verificación de admin para emails específicos
           const adminEmails = ['Luisneyra049@gmail.com', 'luisneyra049@gmail.com', 'admin@newtonic3d.com'];
-          const isAdmin = adminEmails.includes(email);
-          
-          // Modo demo: Si es admin con contraseña demo, permitir acceso
-          if (isAdmin && (password === 'Mamoncio321' || password === 'demo123' || password === 'admin123')) {
-            const demoUser: User = {
-              uid: 'demo-admin-uid',
-              email: email,
-              displayName: 'Admin NewTonic3D',
-              isAdmin: true
-            };
-            
-            set({ user: demoUser, loading: false });
-            return;
-          }
-          
-          // Intentar login real con Firebase
-          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const isAdmin = adminEmails.includes(userCredential.user.email!);
           
           const user: User = {
             uid: userCredential.user.uid,
@@ -213,22 +201,6 @@ export const useAppStore = create<StoreState>()(
 
           set({ user, loading: false });
         } catch (error: any) {
-          // Si Firebase falla pero es admin con credenciales demo, permitir acceso
-          const adminEmails = ['Luisneyra049@gmail.com', 'luisneyra049@gmail.com', 'admin@newtonic3d.com'];
-          const isAdmin = adminEmails.includes(email);
-          
-          if (isAdmin && (password === 'Mamoncio321' || password === 'demo123' || password === 'admin123')) {
-            const demoUser: User = {
-              uid: 'demo-admin-uid',
-              email: email,
-              displayName: 'Admin NewTonic3D (Demo)',
-              isAdmin: true
-            };
-            
-            set({ user: demoUser, loading: false });
-            return;
-          }
-          
           set({ error: error.message, loading: false });
           throw error;
         }
@@ -425,9 +397,146 @@ export const useAppStore = create<StoreState>()(
           };
 
           await firebaseSet(newQuoteRef, quote);
-          set({ loading: false });
+          
+          // Actualizar estado local
+          const quoteWithId = { ...quote, id: newQuoteRef.key! };
+          set(state => ({ 
+            quotes: [...state.quotes, quoteWithId as Quote],
+            loading: false 
+          }));
           
           return newQuoteRef.key!;
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      loadQuotes: async () => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          // Por ahora usar array vacío hasta configurar Firebase
+          set({ quotes: [], loading: false });
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+        }
+      },
+
+      updateQuoteStatus: async (id: string, status, adminNotes, estimatedPrice, estimatedDays) => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          const quoteRef = ref(database, `quotes/${id}`);
+          const updates: Partial<Quote> = {
+            status,
+            adminNotes,
+            estimatedPrice,
+            estimatedDays,
+            updatedAt: new Date().toISOString()
+          };
+          
+          await update(quoteRef, updates);
+          
+          // Actualizar estado local
+          set(state => ({
+            quotes: state.quotes.map(quote => 
+              quote.id === id ? { ...quote, ...updates } : quote
+            ),
+            loading: false
+          }));
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      deleteQuote: async (id: string) => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          const quoteRef = ref(database, `quotes/${id}`);
+          await remove(quoteRef);
+          
+          // Actualizar estado local
+          set(state => ({
+            quotes: state.quotes.filter(quote => quote.id !== id),
+            loading: false
+          }));
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      // Acciones de configuración (Admin)
+      updateSettings: async (updates) => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          const settingsRef = ref(database, 'settings');
+          await update(settingsRef, updates);
+          
+          set(state => ({
+            settings: { ...state.settings, ...updates },
+            loading: false
+          }));
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      updateMaterials: async (materials) => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          const materialsRef = ref(database, 'materials');
+          await firebaseSet(materialsRef, materials);
+          
+          set({ materials, loading: false });
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      updateColors: async (colors) => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          const colorsRef = ref(database, 'colors');
+          await firebaseSet(colorsRef, colors);
+          
+          set({ colors, loading: false });
+        } catch (error: any) {
+          set({ error: error.message, loading: false });
+          throw error;
+        }
+      },
+
+      updateQualities: async (qualities) => {
+        const { user } = get();
+        if (!user?.isAdmin) throw new Error('No autorizado');
+
+        try {
+          set({ loading: true });
+          const qualitiesRef = ref(database, 'qualities');
+          await firebaseSet(qualitiesRef, qualities);
+          
+          set({ qualities, loading: false });
         } catch (error: any) {
           set({ error: error.message, loading: false });
           throw error;
