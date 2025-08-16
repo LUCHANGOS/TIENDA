@@ -12,8 +12,11 @@ function App() {
   // Configurar listener de autenticación
   useAuthListener();
 
+  // Determinar basename basado en el entorno
+  const basename = import.meta.env.DEV ? '/' : '/TIENDA';
+
   return (
-    <Router basename="/TIENDA">
+    <Router basename={basename}>
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
