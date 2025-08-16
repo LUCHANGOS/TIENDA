@@ -1,0 +1,44 @@
+{
+  "rules": {
+    "products": {
+      ".read": "auth != null || data.child('visible').val() == true",
+      ".write": "root.child('admins').child(auth.uid).exists()",
+      "$productId": {
+        ".read": "auth != null || data.child('visible').val() == true",
+        ".write": "root.child('admins').child(auth.uid).exists()"
+      }
+    },
+    "quotes": {
+      ".read": false,
+      ".write": "auth != null",
+      "$quoteId": {
+        ".read": "auth != null && (auth.uid == data.child('userId').val() || root.child('admins').child(auth.uid).exists())",
+        ".write": "auth != null && (auth.uid == data.child('userId').val() || root.child('admins').child(auth.uid).exists())"
+      }
+    },
+    "carts": {
+      ".read": false,
+      ".write": false,
+      "$userId": {
+        ".read": "auth != null && auth.uid == $userId",
+        ".write": "auth != null && auth.uid == $userId"
+      }
+    },
+    "sessions": {
+      ".read": false,
+      ".write": false,
+      "$sessionId": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "admins": {
+      ".read": "root.child('admins').child(auth.uid).exists()",
+      ".write": "root.child('admins').child(auth.uid).exists()",
+      "$userId": {
+        ".read": "auth != null && (auth.uid == $userId || root.child('admins').child(auth.uid).exists())",
+        ".write": "root.child('admins').child(auth.uid).exists()"
+      }
+    }
+  }
+}
