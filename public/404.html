@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>NewTonic3D - Impresión 3D Personalizada</title>
+    <script type="text/javascript">
+      // Single Page Apps for GitHub Pages
+      // MIT License
+      // https://github.com/rafgraph/spa-github-pages
+      // This script checks to see if a redirect is present in the query string,
+      // converts it back into the correct url and adds it to the
+      // browser's history using window.history.replaceState(...),
+      // which won't cause the browser to attempt to load the new url.
+      // When the single page app is loaded further down in this file,
+      // the correct url will be waiting in the browser's history for
+      // the single page app to route accordingly.
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
+    
+    <!-- Redirection script for GitHub Pages -->
+    <script type="text/javascript">
+      // Immediately redirect to correct URL for SPA routing
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      
+      if (l.pathname.length > 1) {
+        l.replace(
+          l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+          l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+          l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+          (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+          l.hash
+        );
+      }
+    </script>
+  </head>
+  <body>
+    <!-- This file must be at least 512 bytes for GitHub Pages -->
+    <div style="padding: 50px; text-align: center; font-family: Arial, sans-serif;">
+      <h2>🔄 Redirigiendo a NewTonic3D...</h2>
+      <p>Si no eres redirigido automáticamente, <a href="/TIENDA/">haz clic aquí</a>.</p>
+      <div style="margin-top: 30px;">
+        <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      </div>
+    </div>
+    
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
+    
+    <!-- Fallback content to ensure 512+ bytes -->
+    <!-- GitHub Pages requires this file to be at least 512 bytes for proper 404 handling -->
+    <!-- This content ensures the file meets that requirement while providing a good user experience -->
+    <!-- NewTonic3D - Tu tienda especializada en impresión 3D personalizada -->
+    <!-- Ofrecemos miniaturas, decoración, prótesis y mucho más con la mejor calidad -->
+  </body>
+</html>

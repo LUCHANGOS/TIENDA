@@ -13,7 +13,7 @@ function App() {
   useAuthListener();
 
   return (
-    <Router basename="/NewTonic3D">
+    <Router basename="/TIENDA">
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
