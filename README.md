@@ -41,8 +41,8 @@ E-commerce completo para impresión 3D con cotizador automático, construido con
 
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/tu-usuario/NewTonic3D.git
-cd NewTonic3D
+git clone https://github.com/LUCHANGOS/TIENDA.git
+cd TIENDA
 ```
 
 ### 2. Instalar dependencias
@@ -79,18 +79,23 @@ npm install
 1. Ve a Project Settings > General
 2. En "Your apps", agrega una app web
 3. Copia la configuración de Firebase
-4. Reemplaza los valores en `src/lib/firebase.ts`:
+4. Configura las variables de entorno:
 
-```typescript
-const firebaseConfig = {
-  apiKey: "tu-api-key",
-  authDomain: "tu-proyecto.firebaseapp.com",
-  databaseURL: "https://tu-proyecto-default-rtdb.firebaseio.com",
-  projectId: "tu-proyecto",
-  storageBucket: "tu-proyecto.appspot.com",
-  messagingSenderId: "123456789",
-  appId: "tu-app-id"
-};
+```bash
+# Copia el archivo de ejemplo
+cp .env.example .env
+
+# Edita .env con tus credenciales reales de Firebase
+```
+
+```env
+VITE_FIREBASE_API_KEY=tu-api-key-real
+VITE_FIREBASE_AUTH_DOMAIN=tienda-de81e.firebaseapp.com
+VITE_FIREBASE_DATABASE_URL=https://tienda-de81e-default-rtdb.firebaseio.com
+VITE_FIREBASE_PROJECT_ID=tienda-de81e
+VITE_FIREBASE_STORAGE_BUCKET=tienda-de81e.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=tu-messaging-sender-id
+VITE_FIREBASE_APP_ID=tu-app-id-real
 ```
 
 ### 4. Ejecutar en desarrollo
@@ -105,12 +110,23 @@ npm run dev
 # Usar las credenciales del usuario creado en Firebase
 ```
 
+### 5. Poblar base de datos (opcional)
+```bash
+# Edita scripts/seed-database.js con tus credenciales
+node scripts/seed-database.js
+```
+
 ## 🚀 Despliegue en GitHub Pages
 
-### 1. Configurar repositorio
-```bash
-git remote add origin https://github.com/tu-usuario/NewTonic3D.git
-```
+### 1. Configurar GitHub Secrets
+En tu repositorio GitHub, ve a Settings > Secrets and variables > Actions y agrega:
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`  
+- `VITE_FIREBASE_DATABASE_URL`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
 
 ### 2. Habilitar GitHub Pages
 1. Ve a Settings > Pages en tu repositorio
@@ -121,9 +137,12 @@ git remote add origin https://github.com/tu-usuario/NewTonic3D.git
 ### 3. Deploy automático
 ```bash
 git add .
-git commit -m "feat: aplicación completa NewTonic3D"
-git push origin main
+git commit -m "feat: configuración Firebase completa"
+git push origin master
 ```
+
+### 4. URL de producción
+La aplicación estará disponible en: `https://LUCHANGOS.github.io/TIENDA/`
 
 ## 🎯 Funcionalidades Implementadas
 
