@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { 
   Upload, 
   FileText, 
-  Calculator, 
   X, 
   AlertCircle, 
   CheckCircle, 
@@ -14,7 +13,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useAppStore } from '../store';
-import type { Material, Quality, Color, QuoteFile } from '../types';
+import type { QuoteFile } from '../types';
 
 interface FileUpload {
   file: File;

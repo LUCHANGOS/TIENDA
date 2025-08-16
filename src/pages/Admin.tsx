@@ -3,17 +3,12 @@ import {
   Shield,
   Package,
   FileText,
-  Users,
   BarChart3,
-  Plus,
   Edit3,
   Trash2,
   Eye,
-  EyeOff,
   CheckCircle,
-  XCircle,
   Clock,
-  AlertCircle,
   Mail,
   Phone,
   Calendar,
@@ -24,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Navigate } from 'react-router-dom';
-import type { Quote, Product, Material, Color, Quality } from '../types';
+import type { Quote, Material } from '../types';
 
 type AdminSection = 'dashboard' | 'quotes' | 'products' | 'materials' | 'settings';
 
@@ -34,17 +29,11 @@ const Admin: React.FC = () => {
     quotes,
     products,
     materials,
-    colors,
-    qualities,
-    settings,
     loading,
     loadQuotes,
     updateQuoteStatus,
     deleteQuote,
-    updateMaterials,
-    updateColors,
-    updateQualities,
-    updateSettings
+    updateMaterials
   } = useAppStore();
 
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');

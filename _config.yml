@@ -1,0 +1,22 @@
+# GitHub Pages configuration for React app
+plugins:
+  - jekyll-include-cache
+
+# Include files starting with underscore
+include:
+  - _redirects
+
+# Exclude build files from Jekyll processing
+exclude:
+  - node_modules/
+  - package*.json
+  - vite.config.ts
+  - tsconfig.json
+  - README.md
+  - .gitignore
+
+# Serve .tsx files as JavaScript modules
+mime_types:
+  tsx: text/javascript
+  ts: text/javascript
+  jsx: text/javascript
