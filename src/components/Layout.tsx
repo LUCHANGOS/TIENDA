@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import AdminLoginModal from './AdminLoginModal';
+import ChatBot from './ChatBot';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -68,20 +69,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3">
               <div className="relative">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">N3D</span>
+                <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-xl tracking-tight">NZ</span>
                 </div>
-                {/* Mascota cómica */}
-                <div className="absolute -top-1 -right-1 text-orange-500 animate-bounce">
-                  <Zap size={16} />
+                {/* Elemento de diseño */}
+                <div className="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse">
+                </div>
+                <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-gradient-to-br from-green-400 to-blue-500 rounded-full">
                 </div>
               </div>
               <div>
                 <h1 className="text-xl font-poppins font-bold text-gray-900">
-                  New<span className="text-primary-600">Tonic</span>
-                  <span className="text-orange-500">3D</span>
+                  <span className="text-indigo-600">NZ</span>
+                  <span className="text-purple-600">LAB</span>
                 </h1>
-                <p className="text-xs text-gray-500 font-comic">¡Impresión que inspira! ✨</p>
+                <p className="text-xs text-gray-500 font-comic">Diseño e Impresión 3D ⚡</p>
               </div>
             </Link>
 
@@ -273,31 +275,39 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">NewTonic3D</h3>
-              <p className="text-gray-400 font-comic">
-                Convirtiendo ideas en realidad, una capa a la vez 🎯
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">NZ</span>
+                </div>
+                <h3 className="text-lg font-semibold">NZLAB</h3>
+              </div>
+              <p className="text-gray-400 font-comic mb-2">
+                Empresa nueva de diseño e impresión 3D 🚀
+              </p>
+              <p className="text-gray-400 text-sm">
+                Transformamos tus ideas en objetos reales con tecnología de vanguardia
               </p>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Servicios</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>Impresión 3D personalizada</li>
+                <li>Diseño 3D personalizado</li>
+                <li>Impresión 3D profesional</li>
                 <li>Prototipos rápidos</li>
-                <li>Piezas industriales</li>
                 <li>Figuras y decoración</li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Contacto</h3>
               <div className="space-y-2 text-gray-400">
-                <p>📧 contacto@newtonic3d.com</p>
-                <p>📞 +1 234 567 8900</p>
-                <p>📍 Calle de la Innovación 123</p>
+                <p>📧 soporte@wwwnewtonic.com</p>
+                <p>📞 +56 9 2614 3193</p>
+                <p>📍 Eleuterio Ramírez 696, Copiapó</p>
               </div>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400 font-comic">
-            <p>© 2024 NewTonic3D. Hecho con ❤️ y mucho filamento.</p>
+            <p>© 2024 NZLAB. Diseño e impresión 3D con pasión ❤️</p>
           </div>
         </div>
       </footer>
@@ -307,6 +317,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         isOpen={showAdminModal}
         onClose={() => setShowAdminModal(false)}
       />
+      
+      {/* ChatBot flotante */}
+      <ChatBot />
     </div>
   );
 };

@@ -53,10 +53,10 @@ const Home: React.FC = () => {
   ];
 
   const stats = [
-    { label: 'Proyectos Completados', value: '1,200+', icon: CheckCircle },
-    { label: 'Tiempo Promedio', value: '48h', icon: Clock },
-    { label: 'Satisfacción Cliente', value: '99%', icon: Star },
-    { label: 'Materiales Disponibles', value: '15+', icon: Package }
+    { label: 'Año de Fundación', value: '2024', icon: CheckCircle },
+    { label: 'Entrega Local', value: '24-48h', icon: Clock },
+    { label: 'Entrega Nacional', value: '5-7d', icon: Package },
+    { label: 'Precisión', value: '0.1mm', icon: Star }
   ];
 
   return (
@@ -70,22 +70,22 @@ const Home: React.FC = () => {
             {/* Contenido */}
             <div>
               <div className="flex items-center space-x-2 mb-6">
-                <span className="text-4xl animate-bounce">🎯</span>
-                <span className="bg-orange-100 text-orange-800 text-sm px-3 py-1 rounded-full font-comic">
-                  ¡Bienvenido a la innovación!
+                <span className="text-4xl animate-bounce">🚀</span>
+                <span className="bg-indigo-100 text-indigo-800 text-sm px-3 py-1 rounded-full font-comic">
+                  ¡Somos nuevos y estamos listos!
                 </span>
               </div>
               
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-poppins font-bold text-gray-900 mb-6">
-                Impresión <span className="gradient-text">3D</span> que 
+                <span className="text-indigo-600">NZ</span><span className="text-purple-600">LAB</span>
                 <br />
-                <span className="text-orange-500">Inspira</span> ✨
+                <span className="text-orange-500">Diseño</span> e <span className="gradient-text">Impresión</span> <span className="text-pink-500">3D</span> ✨
               </h1>
               
               <p className="text-xl text-gray-600 mb-8 font-nunito leading-relaxed">
-                Transformamos tus ideas más locas en objetos reales. 
-                Desde prototipos serios hasta figuritas divertidas, 
-                ¡nosotros lo imprimimos todo!
+                Somos una <strong>empresa nueva</strong> de diseño e impresión 3D en Copiapó. 
+                Transformamos tus ideas en realidad con tecnología de vanguardia 
+                y atención personalizada.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4">

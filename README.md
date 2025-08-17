@@ -1,15 +1,15 @@
-# NewTonic3D 🎯
+# NZLAB - Diseño e Impresión 3D 🚀
 
-E-commerce completo para impresión 3D con cotizador automático, construido con React + TypeScript + Firebase.
+Empresa nueva de diseño e impresión 3D ubicada en Copiapó, Chile. Transformamos ideas en realidad con tecnología de vanguardia y atención personalizada.
 
 ## ✨ Características
 
-### 🎭 Diseño Visual
-- **Imagen seria + toque cómico**: Combina profesionalismo con elementos divertidos
-- **Mascota "Cubic"**: Cubo 3D sonriente como asistente virtual
-- **Tipografías**: Poppins (títulos), Nunito (textos), Comic Neue (mensajes cómicos)
-- **Colores**: Base sobria (azul profundo, gris) + acentos cómicos (naranja, verde lima, morado)
-- **Animaciones**: Microefectos graciosos (carrito que salta, botones que vibran)
+### 🎨 Identidad Visual NZLAB
+- **Logo moderno**: Gradiente indigo-purple-pink con elementos de diseño
+- **Mascota "Cubic"**: Asistente virtual integrado en la plataforma
+- **Tipografías**: Poppins (títulos), Nunito (textos), Comic Neue (elementos divertidos)
+- **Esquema de colores**: Gradientes vibrantes con toques profesionales
+- **UX optimizada**: Interfaz intuitiva y accesible para todos los usuarios
 
 ### 🛍️ E-commerce
 - **Catálogo filtrable**: Búsqueda, categorías, materiales, colores, calidades
@@ -174,12 +174,38 @@ La aplicación estará disponible en: `https://LUCHANGOS.github.io/TIENDA/`
 2. **Filtrar**: Usa búsqueda y filtros
 3. **Cotizar**: Sube archivos 3D
 4. **Comprar**: Agrega al carrito
+5. **Chat**: Usa "Cubic", nuestro asistente virtual
 
 ### Administrador
 1. **Acceder**: Presiona `Ctrl+A`
 2. **Login**: Usa credenciales Firebase
-3. **Gestionar**: CRUD productos
+3. **Gestionar**: CRUD productos y cotizaciones
+
+## 📍 Contacto NZLAB
+
+**NZLAB - Diseño e Impresión 3D**
+
+- 📧 **Email**: soporte@wwwnewtonic.com
+- 📞 **Teléfono**: +56 9 2614 3193
+- 📍 **Dirección**: Eleuterio Ramírez 696, Copiapó, Chile
+- 🌐 **Web**: nzlab.cl (próximamente)
+
+### 🚀 Servicios Destacados
+- Impresión 3D profesional (precisión 0.1mm)
+- Diseño 3D personalizado
+- Entregas rápidas: Copiapó (24-48h) | Nacional (5-7d)
+- Más de 15 materiales disponibles
+- Atención personalizada
+
+### 🏆 Ventajas Competitivas
+- **Empresa nueva** con tecnología de vanguardia
+- **Tiempos rápidos** de entrega
+- **Plataforma digital** avanzada
+- **Asistente virtual** integrado
+- **Transparencia** en procesos
 
 ---
 
-**¡Hecho con ❤️ y mucho filamento!** 🎭✨
+**NZLAB - Transformamos tus ideas en realidad** 🚀
+
+*Diseño e impresión 3D con pasión* ❤️

@@ -42,9 +42,9 @@ const emailTemplates = {
     subject: `✅ Cotización recibida - ${data.quoteId}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">NewTonic 3D</h1>
-          <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Impresión 3D Profesional</p>
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #9333ea 50%, #ec4899 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">NZLAB</h1>
+          <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Diseño e Impresión 3D</p>
         </div>
         
         <div style="padding: 30px; background: white;">
@@ -81,16 +81,17 @@ const emailTemplates = {
           
           <div style="text-align: center; margin-top: 30px;">
             <p style="color: #999; font-size: 14px;">
-              Gracias por confiar en NewTonic 3D<br>
-              <strong>Equipo NewTonic 3D</strong>
+              Gracias por confiar en NZLAB<br>
+              <strong>Equipo NZLAB</strong>
             </p>
           </div>
         </div>
         
-        <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+          <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
           <p style="color: #666; font-size: 12px; margin: 0;">
-            NewTonic 3D - Impresión 3D Profesional<br>
-            📧 soporte@wwwnewtonic.com | 🌐 www.newtonic3d.com
+            NZLAB - Diseño e Impresión 3D<br>
+            📧 soporte@wwwnewtonic.com | 📞 +56 9 2614 3193<br>
+            📍 Eleuterio Ramírez 696, Copiapó
           </p>
         </div>
       </div>
@@ -101,8 +102,8 @@ const emailTemplates = {
     subject: `📋 Actualización de cotización - ${data.quoteId}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">NewTonic 3D</h1>
+        <div style="background: linear-gradient(135deg, #4f46e5 0%, #9333ea 50%, #ec4899 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">NZLAB</h1>
           <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Actualización de tu cotización</p>
         </div>
         
