@@ -20,6 +20,7 @@ import {
 import { useAppStore } from '../store';
 import { Navigate } from 'react-router-dom';
 import type { Quote, Material } from '../types';
+import ProductManager from '../components/admin/ProductManager';
 
 type AdminSection = 'dashboard' | 'quotes' | 'products' | 'materials' | 'settings';
 
@@ -424,13 +425,7 @@ const Admin: React.FC = () => {
           {activeSection === 'dashboard' && renderDashboard()}
           {activeSection === 'quotes' && renderQuotes()}
           {activeSection === 'materials' && renderMaterials()}
-          {activeSection === 'products' && (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-              <Package size={48} className="mx-auto mb-4 text-gray-300" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gestión de Productos</h3>
-              <p className="text-gray-600">Funcionalidad de productos en desarrollo</p>
-            </div>
-          )}
+          {activeSection === 'products' && <ProductManager />}
         </div>
 
         {/* Modal de gestión de cotización */}

@@ -26,7 +26,8 @@ import {
   push, 
   set as firebaseSet, 
   update, 
-  remove
+  remove,
+  get as dbGet
 } from 'firebase/database';
 import { auth, database } from '../lib/firebase';
 
@@ -265,9 +266,21 @@ export const useAppStore = create<StoreState>()(
       loadProducts: async () => {
         try {
           set({ loading: true });
-          // Por ahora usar productos vacíos hasta configurar Firebase
-          set({ products: [], loading: false });
+          const productsRef = ref(database, 'products');
+          const snapshot = await dbGet(productsRef);
+          
+          if (snapshot.exists()) {
+            const productsData = snapshot.val();
+            const products: Product[] = Object.entries(productsData).map(([id, data]: [string, any]) => ({
+              id,
+              ...data
+            }));
+            set({ products, loading: false });
+          } else {
+            set({ products: [], loading: false });
+          }
         } catch (error: any) {
+          console.error('Error loading products:', error);
           set({ error: error.message, loading: false });
         }
       },
@@ -463,9 +476,23 @@ export const useAppStore = create<StoreState>()(
 
         try {
           set({ loading: true });
-          // Por ahora usar array vacío hasta configurar Firebase
-          set({ quotes: [], loading: false });
+          const quotesRef = ref(database, 'quotes');
+          const snapshot = await dbGet(quotesRef);
+          
+          if (snapshot.exists()) {
+            const quotesData = snapshot.val();
+            const quotes: Quote[] = Object.entries(quotesData).map(([id, data]: [string, any]) => ({
+              id,
+              ...data
+            }));
+            // Ordenar por fecha de creación descendente (más recientes primero)
+            quotes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            set({ quotes, loading: false });
+          } else {
+            set({ quotes: [], loading: false });
+          }
         } catch (error: any) {
+          console.error('Error loading quotes:', error);
           set({ error: error.message, loading: false });
         }
       },
