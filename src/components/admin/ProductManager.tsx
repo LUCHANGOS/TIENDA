@@ -56,10 +56,10 @@ const ProductManager: React.FC = () => {
     name: '',
     description: '',
     price: 0,
-    category: categories[0],
-    materials: [materials[0]],
-    colors: [colors[0]],
-    qualities: [qualities[0]],
+    category: categories[0] || ({ id: '', name: '', description: '', icon: '' } as ProductCategory),
+    materials: materials.length > 0 ? [materials[0]] : [],
+    colors: colors.length > 0 ? [colors[0]] : [],
+    qualities: qualities.length > 0 ? [qualities[0]] : [],
     images: [],
     model3d: '',
     visible: true
@@ -155,10 +155,10 @@ const ProductManager: React.FC = () => {
       name: '',
       description: '',
       price: 0,
-      category: categories[0],
-      materials: [materials[0]],
-      colors: [colors[0]],
-      qualities: [qualities[0]],
+      category: categories[0] || ({ id: '', name: '', description: '', icon: '' } as ProductCategory),
+      materials: materials.length > 0 ? [materials[0]] : [],
+      colors: colors.length > 0 ? [colors[0]] : [],
+      qualities: qualities.length > 0 ? [qualities[0]] : [],
       images: [],
       model3d: '',
       visible: true
@@ -175,14 +175,14 @@ const ProductManager: React.FC = () => {
       description: product.description,
       price: product.price,
       category: product.category,
-      materials: product.materials,
-      colors: product.colors,
-      qualities: product.qualities,
-      images: product.images,
+      materials: Array.isArray(product.materials) ? product.materials : [],
+      colors: Array.isArray(product.colors) ? product.colors : [],
+      qualities: Array.isArray(product.qualities) ? product.qualities : [],
+      images: Array.isArray(product.images) ? product.images : [],
       model3d: product.model3d || '',
       visible: product.visible
     });
-    setPreviewImages(product.images);
+    setPreviewImages(Array.isArray(product.images) ? product.images : []);
     setIsModalOpen(true);
   };
 
@@ -274,7 +274,7 @@ const ProductManager: React.FC = () => {
               <div key={product.id} className="border border-gray-200 rounded-lg overflow-hidden">
                 {/* Imagen del producto */}
                 <div className="relative h-48 bg-gray-100">
-                  {product.images.length > 0 ? (
+                  {Array.isArray(product.images) && product.images.length > 0 ? (
                     <img
                       src={product.images[0]}
                       alt={product.name}
@@ -312,12 +312,12 @@ const ProductManager: React.FC = () => {
                   
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                     <span>{product.category.name}</span>
-                    <span>{product.images.length} fotos</span>
+                    <span>{Array.isArray(product.images) ? product.images.length : 0} fotos</span>
                   </div>
 
                   {/* Materiales disponibles */}
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.materials.slice(0, 3).map((material) => (
+                    {Array.isArray(product.materials) && product.materials.slice(0, 3).map((material) => (
                       <span
                         key={material.id}
                         className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
@@ -325,7 +325,7 @@ const ProductManager: React.FC = () => {
                         {material.name}
                       </span>
                     ))}
-                    {product.materials.length > 3 && (
+                    {Array.isArray(product.materials) && product.materials.length > 3 && (
                       <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                         +{product.materials.length - 3}
                       </span>
@@ -455,21 +455,21 @@ const ProductManager: React.FC = () => {
                     Materiales
                   </label>
                   <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
-                    {materials.map((material) => (
+                    {Array.isArray(materials) && materials.map((material) => (
                       <label key={material.id} className="flex items-center space-x-2 text-sm">
                         <input
                           type="checkbox"
-                          checked={formData.materials.some(m => m.id === material.id)}
+                          checked={Array.isArray(formData.materials) && formData.materials.some(m => m.id === material.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setFormData(prev => ({
                                 ...prev,
-                                materials: [...prev.materials, material]
+                                materials: Array.isArray(prev.materials) ? [...prev.materials, material] : [material]
                               }));
                             } else {
                               setFormData(prev => ({
                                 ...prev,
-                                materials: prev.materials.filter(m => m.id !== material.id)
+                                materials: Array.isArray(prev.materials) ? prev.materials.filter(m => m.id !== material.id) : []
                               }));
                             }
                           }}
@@ -488,21 +488,21 @@ const ProductManager: React.FC = () => {
                     Colores
                   </label>
                   <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
-                    {colors.map((color) => (
+                    {Array.isArray(colors) && colors.map((color) => (
                       <label key={color.id} className="flex items-center space-x-2 text-sm">
                         <input
                           type="checkbox"
-                          checked={formData.colors.some(c => c.id === color.id)}
+                          checked={Array.isArray(formData.colors) && formData.colors.some(c => c.id === color.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setFormData(prev => ({
                                 ...prev,
-                                colors: [...prev.colors, color]
+                                colors: Array.isArray(prev.colors) ? [...prev.colors, color] : [color]
                               }));
                             } else {
                               setFormData(prev => ({
                                 ...prev,
-                                colors: prev.colors.filter(c => c.id !== color.id)
+                                colors: Array.isArray(prev.colors) ? prev.colors.filter(c => c.id !== color.id) : []
                               }));
                             }
                           }}
@@ -525,21 +525,21 @@ const ProductManager: React.FC = () => {
                     Calidades
                   </label>
                   <div className="space-y-2 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
-                    {qualities.map((quality) => (
+                    {Array.isArray(qualities) && qualities.map((quality) => (
                       <label key={quality.id} className="flex items-center space-x-2 text-sm">
                         <input
                           type="checkbox"
-                          checked={formData.qualities.some(q => q.id === quality.id)}
+                          checked={Array.isArray(formData.qualities) && formData.qualities.some(q => q.id === quality.id)}
                           onChange={(e) => {
                             if (e.target.checked) {
                               setFormData(prev => ({
                                 ...prev,
-                                qualities: [...prev.qualities, quality]
+                                qualities: Array.isArray(prev.qualities) ? [...prev.qualities, quality] : [quality]
                               }));
                             } else {
                               setFormData(prev => ({
                                 ...prev,
-                                qualities: prev.qualities.filter(q => q.id !== quality.id)
+                                qualities: Array.isArray(prev.qualities) ? prev.qualities.filter(q => q.id !== quality.id) : []
                               }));
                             }
                           }}

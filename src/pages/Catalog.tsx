@@ -30,9 +30,9 @@ const Catalog: React.FC = () => {
 
   const openProductModal = (product: Product) => {
     setSelectedProduct(product);
-    setSelectedMaterial(product.materials[0] || null);
-    setSelectedColor(product.colors[0] || null);
-    setSelectedQuality(product.qualities[0] || null);
+    setSelectedMaterial((Array.isArray(product.materials) && product.materials.length > 0) ? product.materials[0] : null);
+    setSelectedColor((Array.isArray(product.colors) && product.colors.length > 0) ? product.colors[0] : null);
+    setSelectedQuality((Array.isArray(product.qualities) && product.qualities.length > 0) ? product.qualities[0] : null);
     setQuantity(1);
     setViewMode3D(false); // Empezar siempre en modo imagen
   };
@@ -220,7 +220,7 @@ const Catalog: React.FC = () => {
                   
                   {/* Materiales disponibles */}
                   <div className="flex flex-wrap gap-1 mb-3">
-                    {product.materials.slice(0, 3).map((material) => (
+                    {Array.isArray(product.materials) && product.materials.slice(0, 3).map((material) => (
                       <span
                         key={material.id}
                         className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded"
@@ -228,7 +228,7 @@ const Catalog: React.FC = () => {
                         {material.name}
                       </span>
                     ))}
-                    {product.materials.length > 3 && (
+                    {Array.isArray(product.materials) && product.materials.length > 3 && (
                       <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
                         +{product.materials.length - 3}
                       </span>
@@ -367,12 +367,12 @@ const Catalog: React.FC = () => {
                     <select
                       value={selectedMaterial?.id || ''}
                       onChange={(e) => {
-                        const material = selectedProduct.materials.find(m => m.id === e.target.value);
+                        const material = Array.isArray(selectedProduct.materials) ? selectedProduct.materials.find(m => m.id === e.target.value) : null;
                         setSelectedMaterial(material || null);
                       }}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
-                      {selectedProduct.materials.map((material) => (
+                      {Array.isArray(selectedProduct.materials) && selectedProduct.materials.map((material) => (
                         <option key={material.id} value={material.id}>
                           {material.name}
                         </option>
@@ -391,12 +391,12 @@ const Catalog: React.FC = () => {
                     <select
                       value={selectedColor?.id || ''}
                       onChange={(e) => {
-                        const color = selectedProduct.colors.find(c => c.id === e.target.value);
+                        const color = Array.isArray(selectedProduct.colors) ? selectedProduct.colors.find(c => c.id === e.target.value) : null;
                         setSelectedColor(color || null);
                       }}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
-                      {selectedProduct.colors.map((color) => (
+                      {Array.isArray(selectedProduct.colors) && selectedProduct.colors.map((color) => (
                         <option key={color.id} value={color.id}>
                           {color.name} {color.surcharge > 0 && `(+${color.surcharge}%)`}
                         </option>
@@ -421,12 +421,12 @@ const Catalog: React.FC = () => {
                     <select
                       value={selectedQuality?.id || ''}
                       onChange={(e) => {
-                        const quality = selectedProduct.qualities.find(q => q.id === e.target.value);
+                        const quality = Array.isArray(selectedProduct.qualities) ? selectedProduct.qualities.find(q => q.id === e.target.value) : null;
                         setSelectedQuality(quality || null);
                       }}
                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     >
-                      {selectedProduct.qualities.map((quality) => (
+                      {Array.isArray(selectedProduct.qualities) && selectedProduct.qualities.map((quality) => (
                         <option key={quality.id} value={quality.id}>
                           {quality.name} - {quality.layerHeight}mm
                         </option>
