@@ -26,11 +26,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendEmail = exports.onOrderUpdated = exports.onOrderCreated = exports.onQuoteUpdated = exports.onQuoteCreated = exports.sendOrderStatusUpdate = exports.sendOrderConfirmation = exports.sendQuoteStatusUpdate = exports.sendQuoteConfirmation = void 0;
+exports.sendEmail = exports.onOrderUpdated = exports.onOrderCreated = exports.onQuoteUpdated = exports.onQuoteCreated = exports.sendOrderStatusUpdate = exports.sendOrderConfirmation = exports.sendQuoteStatusUpdate = exports.sendQuoteConfirmation = exports.helloWorld = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
 const nodemailer = __importStar(require("nodemailer"));
 const cors_1 = __importDefault(require("cors"));
+// Función de prueba simple
+exports.helloWorld = functions.https.onRequest((request, response) => {
+    response.json({ result: "Hello from NewTonic3D!", timestamp: new Date().toISOString() });
+});
 // Inicializar Firebase Admin
 admin.initializeApp();
 // Configurar CORS

@@ -3,6 +3,11 @@ import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
 import cors from "cors";
 
+// Función de prueba simple
+export const helloWorld = functions.https.onRequest((request, response) => {
+  response.json({result: "Hello from NewTonic3D!", timestamp: new Date().toISOString()});
+});
+
 // Inicializar Firebase Admin
 admin.initializeApp();
 
