@@ -81,11 +81,28 @@ const ProductManager: React.FC = () => {
 
     setUploadingFiles(true);
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const filename = `products/${Date.now()}_${file.name}`;
-        const storageReference = storageRef(storage, filename);
-        await uploadBytes(storageReference, file);
-        return await getDownloadURL(storageReference);
+      console.log('🔄 Iniciando upload de imágenes...', {
+        count: files.length,
+        storage: storage.app.options.storageBucket
+      });
+      
+      const uploadPromises = Array.from(files).map(async (file, index) => {
+        try {
+          console.log(`📤 Subiendo imagen ${index + 1}/${files.length}:`, file.name);
+          const filename = `products/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+          const storageReference = storageRef(storage, filename);
+          
+          const uploadResult = await uploadBytes(storageReference, file);
+          console.log(`✅ Imagen ${index + 1} subida:`, uploadResult.metadata.name);
+          
+          const url = await getDownloadURL(storageReference);
+          console.log(`🔗 URL obtenida:`, url);
+          
+          return url;
+        } catch (fileError) {
+          console.error(`❌ Error subiendo imagen ${file.name}:`, fileError);
+          throw fileError;
+        }
       });
 
       const urls = await Promise.all(uploadPromises);
@@ -97,8 +114,15 @@ const ProductManager: React.FC = () => {
       // Crear previsualizaciones
       const previews = Array.from(files).map(file => URL.createObjectURL(file));
       setPreviewImages(prev => [...prev, ...previews]);
-    } catch (error) {
-      console.error('Error uploading images:', error);
+      
+      console.log('🎉 Todas las imágenes subidas exitosamente');
+    } catch (error: any) {
+      console.error('❌ Error uploading images:', {
+        error: error.message,
+        code: error.code,
+        serverResponse: error.serverResponse
+      });
+      alert(`Error subiendo imágenes: ${error.message}\n\nPor favor verifica la configuración de Firebase Storage.`);
     } finally {
       setUploadingFiles(false);
     }
