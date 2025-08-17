@@ -389,49 +389,75 @@ const emailTemplates = {
   })
 };
 
-// Función auxiliar para calcular estimaciones de impresión
+// Función auxiliar para calcular estimaciones de impresión basada en archivos reales
 const calculatePrintingEstimate = (fileData: any, material: any, quality: any, color: any, quantity: number) => {
-  // Factores base
-  const baseMaterialCost = material?.pricePerGram || 0.5; // USD por gramo
-  const baseVolume = fileData?.estimatedVolume || 10; // cm³ por defecto
-  const density = material?.density || 1.2; // g/cm³
+  // Factores base del material
+  const materialCostPerGram = material?.pricePerGram || 0.5; // USD por gramo
+  const materialDensity = material?.density || 1.2; // g/cm³
   
-  // Calcular peso
-  const weight = baseVolume * density * quantity;
+  // Estimar volumen basado en el tamaño del archivo
+  // Un archivo STL típico: 1MB ≈ 50-100 cm³ dependiendo de la complejidad
+  let estimatedVolume = 10; // volumen mínimo por defecto
   
-  // Multiplicadores por calidad
+  if (fileData && fileData.size) {
+    const fileSizeMB = fileData.size / (1024 * 1024);
+    // Estimación más realista basada en tamaño de archivo
+    estimatedVolume = Math.max(10, fileSizeMB * 75); // Base mínima 10cm³
+  }
+  
+  // Volumen total considerando cantidad
+  const totalVolume = estimatedVolume * quantity;
+  
+  // Calcular peso del material
+  const materialWeight = totalVolume * materialDensity;
+  
+  // Multiplicadores por calidad de impresión
   const qualityMultipliers = {
     'draft': 0.8,
     'standard': 1.0,
     'fine': 1.5,
     'ultrafine': 2.0
   };
-  const qualityMultiplier = qualityMultipliers[quality?.name?.toLowerCase()] || 1.0;
+  const qualityName = quality?.name?.toLowerCase() || 'standard';
+  const qualityMultiplier = qualityMultipliers[qualityName] || 1.0;
   
-  // Multiplicadores por color
-  const colorSurcharge = color?.surcharge || 0; // porcentaje adicional
+  // Calcular tiempo de impresión (0.5 horas base por cm³, ajustado por calidad)
+  const basePrintTimePerCm3 = 0.5;
+  const printTime = totalVolume * basePrintTimePerCm3 * qualityMultiplier;
+  
+  // Multiplicador por color (recargo porcentual)
+  const colorSurcharge = color?.surcharge || 0;
   const colorMultiplier = 1 + (colorSurcharge / 100);
   
-  // Calcular tiempo de impresión (horas)
-  const baseTimePerCm3 = 0.5; // horas por cm³
-  const printTime = (baseVolume * quantity * qualityMultiplier).toFixed(1);
+  // Calcular costos detallados
+  const materialCost = materialWeight * materialCostPerGram;
+  const laborCost = printTime * 8; // $8 USD por hora de trabajo
   
-  // Calcular costos
-  const materialCost = weight * baseMaterialCost;
-  const laborCost = parseFloat(printTime) * 5; // $5 USD por hora
-  const subtotal = (materialCost + laborCost) * colorMultiplier;
-  const total = subtotal * 1.15; // 15% margen
+  // Aplicar multiplicadores
+  const subtotalWithColor = (materialCost + laborCost) * colorMultiplier;
   
-  // Días total (impresión + 2 días de envío)
-  const printDays = Math.ceil(parseFloat(printTime) / 8); // 8 horas por día
-  const totalDays = printDays + 2; // + 2 días de envío
+  // Margen de ganancia del 20%
+  const finalPrice = subtotalWithColor * 1.2;
+  
+  // Calcular días de entrega
+  const printDays = Math.ceil(printTime / 8); // 8 horas de trabajo por día
+  const shippingDays = 2; // días de envío
+  const totalDays = Math.max(2, printDays + shippingDays); // mínimo 2 días
   
   return {
-    estimatedPrice: total.toFixed(2),
-    estimatedPrintTime: printTime,
-    estimatedVolume: (baseVolume * quantity).toFixed(1),
-    estimatedWeight: weight.toFixed(1),
-    totalDays: totalDays
+    estimatedPrice: finalPrice.toFixed(2),
+    estimatedPrintTime: printTime.toFixed(1),
+    estimatedVolume: totalVolume.toFixed(1),
+    estimatedWeight: materialWeight.toFixed(1),
+    totalDays: totalDays,
+    // Detalles adicionales para el administrador
+    breakdown: {
+      materialCost: materialCost.toFixed(2),
+      laborCost: laborCost.toFixed(2),
+      subtotal: (materialCost + laborCost).toFixed(2),
+      withColorSurcharge: subtotalWithColor.toFixed(2),
+      margin: (finalPrice - subtotalWithColor).toFixed(2)
+    }
   };
 };
 

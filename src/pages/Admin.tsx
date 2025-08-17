@@ -23,6 +23,7 @@ import { useAppStore } from '../store';
 import { Navigate } from 'react-router-dom';
 import type { Quote, Material } from '../types';
 import ProductManager from '../components/admin/ProductManager';
+import AdminQuoteForm from '../components/admin/AdminQuoteForm';
 
 type AdminSection = 'dashboard' | 'quotes' | 'products' | 'materials' | 'settings';
 
@@ -473,7 +474,7 @@ const Admin: React.FC = () => {
         {/* Modal de gestión de cotización */}
         {selectedQuote && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-96 overflow-y-auto">
+            <div className="bg-white rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900">
@@ -488,6 +489,7 @@ const Admin: React.FC = () => {
                 </div>
                 
                 <div className="space-y-4">
+                  {/* Información básica de la cotización */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p><strong>Email:</strong> {selectedQuote.email}</p>
@@ -499,9 +501,35 @@ const Admin: React.FC = () => {
                       <p><strong>Cantidad:</strong> {selectedQuote.quantity}</p>
                       <p><strong>Urgencia:</strong> {selectedQuote.urgency}</p>
                       <p><strong>Estado actual:</strong> {selectedQuote.status}</p>
-                      <p><strong>Precio estimado:</strong> ${selectedQuote.estimatedPrice || 'N/A'}</p>
+                      <p><strong>Color:</strong> {selectedQuote.color?.name || 'No especificado'}</p>
                     </div>
                   </div>
+
+                  {/* Estimación automática del sistema */}
+                  {selectedQuote.estimatedPrice && (
+                    <div className="p-3 bg-orange-50 rounded border-l-4 border-orange-400">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <DollarSign size={16} className="text-orange-600" />
+                        </div>
+                        <div className="ml-3">
+                          <h4 className="text-sm font-medium text-orange-900">Estimación Automática del Sistema</h4>
+                          <div className="text-sm text-orange-700 mt-1">
+                            <p><strong>Precio estimado:</strong> ${selectedQuote.estimatedPrice}</p>
+                            {selectedQuote.estimatedPrintTime && (
+                              <p><strong>Tiempo impresión:</strong> {selectedQuote.estimatedPrintTime} horas</p>
+                            )}
+                            {selectedQuote.estimatedWeight && (
+                              <p><strong>Peso estimado:</strong> {selectedQuote.estimatedWeight} gramos</p>
+                            )}
+                            {selectedQuote.totalEstimatedDays && (
+                              <p><strong>Días totales:</strong> {selectedQuote.totalEstimatedDays} días hábiles</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   {selectedQuote.notes && (
                     <div className="p-3 bg-gray-50 rounded">
@@ -515,7 +543,7 @@ const Admin: React.FC = () => {
                     <div className="flex items-center justify-between mb-3">
                       <strong className="flex items-center space-x-2">
                         <FileText size={16} className="text-blue-600" />
-                        <span>Archivos ({selectedQuote.files.length})</span>
+                        <span>Archivos 3D ({selectedQuote.files.length})</span>
                       </strong>
                       {selectedQuote.files.length > 1 && (
                         <button
@@ -550,27 +578,13 @@ const Admin: React.FC = () => {
                       ))}
                     </div>
                   </div>
-                  
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleUpdateQuote(selectedQuote.id, 'processing')}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    >
-                      Marcar en Proceso
-                    </button>
-                    <button
-                      onClick={() => handleUpdateQuote(selectedQuote.id, 'quoted', 'Cotización enviada', selectedQuote.estimatedPrice)}
-                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                    >
-                      Marcar Cotizada
-                    </button>
-                    <button
-                      onClick={() => handleUpdateQuote(selectedQuote.id, 'rejected', 'Cotización rechazada')}
-                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                    >
-                      Rechazar
-                    </button>
-                  </div>
+
+                  {/* Formulario de cotización manual del administrador */}
+                  <AdminQuoteForm
+                    selectedQuote={selectedQuote}
+                    onUpdateQuote={handleUpdateQuote}
+                    onClose={() => setSelectedQuote(null)}
+                  />
                 </div>
               </div>
             </div>
