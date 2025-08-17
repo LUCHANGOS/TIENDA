@@ -15,17 +15,19 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-// Debug: Log para verificar configuración completa
-console.log('🔥 Firebase Config Debug:', {
-  apiKey: firebaseConfig.apiKey ? `✅ ${firebaseConfig.apiKey.substring(0, 10)}...` : '❌ Faltante',
-  authDomain: firebaseConfig.authDomain || '❌ Faltante',
-  databaseURL: firebaseConfig.databaseURL || '❌ Faltante',
-  projectId: firebaseConfig.projectId || '❌ Faltante',
-  storageBucket: firebaseConfig.storageBucket || '❌ Faltante',
-  messagingSenderId: firebaseConfig.messagingSenderId || '❌ Faltante',
-  appId: firebaseConfig.appId ? `✅ ${firebaseConfig.appId.substring(0, 15)}...` : '❌ Faltante',
-  timestamp: new Date().toISOString()
-});
+// Debug: Verificar configuración en desarrollo
+if (import.meta.env.DEV) {
+  console.log('🔥 Firebase Config Debug:', {
+    apiKey: firebaseConfig.apiKey ? `✅ ${firebaseConfig.apiKey.substring(0, 10)}...` : '❌ Faltante',
+    authDomain: firebaseConfig.authDomain || '❌ Faltante',
+    databaseURL: firebaseConfig.databaseURL || '❌ Faltante',
+    projectId: firebaseConfig.projectId || '❌ Faltante',
+    storageBucket: firebaseConfig.storageBucket || '❌ Faltante',
+    messagingSenderId: firebaseConfig.messagingSenderId || '❌ Faltante',
+    appId: firebaseConfig.appId ? `✅ ${firebaseConfig.appId.substring(0, 15)}...` : '❌ Faltante',
+    timestamp: new Date().toISOString()
+  });
+}
 
 // Verificar que todas las variables estén configuradas
 if (!firebaseConfig.apiKey || firebaseConfig.apiKey === 'demo-api-key') {

@@ -506,9 +506,9 @@ export const useAppStore = create<StoreState>()(
           const quoteRef = ref(database, `quotes/${id}`);
           const updates: Partial<Quote> = {
             status,
-            adminNotes,
-            estimatedPrice,
-            estimatedDays,
+            ...(adminNotes !== undefined && { adminNotes }),
+            ...(estimatedPrice !== undefined && { estimatedPrice }),
+            ...(estimatedDays !== undefined && { estimatedDays }),
             updatedAt: new Date().toISOString()
           };
           

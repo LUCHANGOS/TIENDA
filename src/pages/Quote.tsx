@@ -182,15 +182,15 @@ const Quote: React.FC = () => {
       const quoteData = {
         name: formData.name,
         email: formData.email,
-        phone: formData.phone || undefined,
+        ...(formData.phone && formData.phone.trim() && { phone: formData.phone }),
         files: quoteFiles as QuoteFile[],
         material: selectedMaterial,
         quality: selectedQuality,
-        color: selectedColor,
+        ...(selectedColor && { color: selectedColor }),
         quantity: formData.quantity,
         urgency: formData.urgency,
-        notes: formData.notes || undefined,
-        estimatedPrice: estimate?.total
+        ...(formData.notes && formData.notes.trim() && { notes: formData.notes }),
+        ...(estimate?.total && { estimatedPrice: estimate.total })
       };
       
       const id = await submitQuote(quoteData);
