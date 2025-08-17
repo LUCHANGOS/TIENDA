@@ -122,6 +122,64 @@ export interface AdminPermission {
   resource: 'products' | 'quotes' | 'users' | 'orders' | 'analytics';
 }
 
+// ===================== SISTEMA DE PEDIDOS =====================
+
+export interface Order {
+  id: string;
+  userId?: string;
+  sessionId?: string;
+  customerInfo: {
+    name: string;
+    email: string;
+    phone?: string;
+    address?: {
+      street: string;
+      city: string;
+      state: string;
+      zipCode: string;
+      country: string;
+    };
+  };
+  items: CartItem[];
+  totalAmount: number;
+  subtotal: number;
+  tax: number;
+  shipping: number;
+  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  paymentMethod?: 'card' | 'paypal' | 'transfer' | 'cash';
+  shippingMethod?: 'standard' | 'express' | 'pickup';
+  trackingNumber?: string;
+  estimatedDelivery?: string;
+  deliveredAt?: string;
+  statusDetails?: string;
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OrderStatusHistory {
+  id: string;
+  orderId: string;
+  status: Order['status'];
+  notes?: string;
+  changedBy: string; // Admin ID
+  createdAt: string;
+}
+
+export interface CustomerInfo {
+  name: string;
+  email: string;
+  phone?: string;
+  address?: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+}
+
 export interface PriceEstimate {
   materialCost: number;
   laborCost: number;
@@ -166,6 +224,7 @@ export interface AppState {
   cart: Cart | null;
   products: Product[];
   quotes: Quote[];
+  orders: Order[]; // Nuevo: Pedidos
   categories: ProductCategory[];
   materials: Material[];
   colors: Color[];
@@ -199,6 +258,13 @@ export interface AppActions {
   loadQuotes: () => Promise<void>;
   updateQuoteStatus: (id: string, status: Quote['status'], adminNotes?: string, estimatedPrice?: number, estimatedDays?: number) => Promise<void>;
   deleteQuote: (id: string) => Promise<void>;
+  
+  // Pedidos
+  createOrder: (customerInfo: CustomerInfo, paymentMethod?: string, shippingMethod?: string) => Promise<string>;
+  loadOrders: () => Promise<void>;
+  updateOrderStatus: (id: string, status: Order['status'], statusDetails?: string, trackingNumber?: string, estimatedDelivery?: string) => Promise<void>;
+  deleteOrder: (id: string) => Promise<void>;
+  getOrderById: (id: string) => Order | undefined;
   
   // Configuración (Admin)
   updateSettings: (updates: Partial<AppSettings>) => Promise<void>;

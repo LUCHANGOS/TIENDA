@@ -4,15 +4,21 @@ Este documento describe cómo configurar el sistema de envío de emails automát
 
 ## 🚀 Funcionalidades Implementadas
 
-### ✅ Emails Automáticos
+### ✅ Emails Automáticos para Cotizaciones
 1. **Email de Confirmación**: Se envía automáticamente cuando un cliente envía una cotización
 2. **Email de Actualización**: Se envía cuando el admin cambia el estado de una cotización
+
+### ✅ Emails Automáticos para Pedidos de Catálogo
+1. **Email de Confirmación de Compra**: Se envía automáticamente cuando se confirma un pedido
+2. **Email de Actualización de Estado**: Se envía cuando cambia el estado del pedido (procesando, enviado, entregado, etc.)
 
 ### 📧 Plantillas de Email
 - **Diseño profesional** con branding de NewTonic3D
 - **Responsive** para móviles y desktop
-- **Información detallada** de la cotización
+- **Información detallada** de cotizaciones y pedidos
 - **Estados con colores** para fácil identificación
+- **Resumen de productos** con detalles de materiales y especificaciones
+- **Información de seguimiento** para pedidos enviados
 
 ## 🛠️ Configuración Requerida
 
@@ -80,6 +86,36 @@ firebase functions:log
   - `estimatedPrice`: Precio estimado (opcional)
   - `estimatedDays`: Días estimados (opcional)
   - `adminNotes`: Notas del administrador (opcional)
+
+### `sendOrderConfirmation` 🆕
+- **Trigger**: Se ejecuta automáticamente al crear un pedido de catálogo
+- **Parámetros**:
+  - `orderId`: ID único del pedido
+  - `customerName`: Nombre del cliente
+  - `customerEmail`: Email del cliente
+  - `orderDate`: Fecha del pedido
+  - `totalAmount`: Monto total del pedido
+  - `items`: Array de productos con detalles (material, color, calidad, cantidad)
+
+### `sendOrderStatusUpdate` 🆕
+- **Trigger**: Se ejecuta automáticamente al actualizar estado de pedido
+- **Parámetros**:
+  - `orderId`: ID único del pedido
+  - `customerName`: Nombre del cliente
+  - `customerEmail`: Email del cliente
+  - `status`: Nuevo estado del pedido (processing, shipped, delivered, etc.)
+  - `orderDate`: Fecha del pedido
+  - `totalAmount`: Monto total
+  - `itemCount`: Cantidad de productos
+  - `estimatedDelivery`: Fecha estimada de entrega (opcional)
+  - `trackingNumber`: Número de seguimiento (opcional)
+  - `statusDetails`: Detalles adicionales del estado (opcional)
+
+### Triggers Automáticos 🤖
+- **`onQuoteCreated`**: Envía confirmación automáticamente al crear cotización
+- **`onQuoteUpdated`**: Envía actualización automáticamente al cambiar estado de cotización
+- **`onOrderCreated`**: Envía confirmación automáticamente al crear pedido
+- **`onOrderUpdated`**: Envía actualización automáticamente al cambiar estado de pedido
 
 ## 🎨 Plantillas de Email
 
