@@ -9,9 +9,13 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Send
+  Send,
+  Shield,
+  Unlock
 } from 'lucide-react';
 import type { Quote } from '../../types';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../../lib/firebase';
 
 interface AdminQuoteFormProps {
   selectedQuote: Quote;
@@ -25,13 +29,51 @@ const AdminQuoteForm: React.FC<AdminQuoteFormProps> = ({
   onClose 
 }) => {
   const [formData, setFormData] = useState({
-    finalPrice: selectedQuote.estimatedPrice || 0,
-    estimatedDays: selectedQuote.totalEstimatedDays || 3,
+    finalPrice: selectedQuote.estimatedPrice || selectedQuote._internalEstimates?.price || 0,
+    estimatedDays: selectedQuote.estimatedDays || selectedQuote._internalEstimates?.totalDays || 3,
     adminNotes: '',
     status: selectedQuote.status
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [decryptedEstimates, setDecryptedEstimates] = useState<any>(null);
+  const [isDecrypting, setIsDecrypting] = useState(false);
+  const [securityInfo, setSecurityInfo] = useState<any>(null);
+  
+  // Función para descifrar estimaciones internas
+  const decryptInternalEstimates = async () => {
+    if (!selectedQuote._internalEstimates || typeof selectedQuote._internalEstimates !== 'string') {
+      return;
+    }
+    
+    setIsDecrypting(true);
+    try {
+      const decryptQuoteEstimates = httpsCallable(functions, 'decryptQuoteEstimates');
+      const result = await decryptQuoteEstimates({ quoteId: selectedQuote.id });
+      
+      if (result.data.success) {
+        setDecryptedEstimates(result.data.estimates);
+        setSecurityInfo({
+          securityLevel: result.data.securityLevel,
+          lastCalculated: result.data.lastCalculated,
+          warning: result.data.warning
+        });
+        console.log('🔓 Estimaciones descifradas exitosamente');
+      }
+    } catch (error) {
+      console.error('❌ Error descifrando estimaciones:', error);
+      alert('Error descifrando estimaciones. Verifica tus permisos.');
+    } finally {
+      setIsDecrypting(false);
+    }
+  };
+  
+  // Descifrar automáticamente si hay estimaciones cifradas
+  useEffect(() => {
+    if (selectedQuote._internalEstimates && typeof selectedQuote._internalEstimates === 'string') {
+      decryptInternalEstimates();
+    }
+  }, [selectedQuote._internalEstimates]);
 
   // Calcular datos basados en análisis del archivo
   const calculateFileBasedEstimate = () => {
@@ -100,16 +142,22 @@ const AdminQuoteForm: React.FC<AdminQuoteFormProps> = ({
 
   const fileAnalysis = calculateFileBasedEstimate();
 
-  // Usar la estimación basada en archivos como valor inicial si no hay precio establecido
+  // Preferir estimaciones internas del backend si están disponibles
+  const preferredEstimate = selectedQuote._internalEstimates || fileAnalysis;
+
+  // Usar la estimación preferida como valor inicial si no hay precio establecido
   useEffect(() => {
-    if (!selectedQuote.estimatedPrice && fileAnalysis) {
+    if (!selectedQuote.estimatedPrice && preferredEstimate) {
+      const price = selectedQuote._internalEstimates?.price || parseFloat(fileAnalysis?.finalPrice || '0');
+      const days = selectedQuote._internalEstimates?.totalDays || fileAnalysis?.totalDays || 3;
+      
       setFormData(prev => ({
         ...prev,
-        finalPrice: parseFloat(fileAnalysis.finalPrice),
-        estimatedDays: fileAnalysis.totalDays
+        finalPrice: price,
+        estimatedDays: days
       }));
     }
-  }, [fileAnalysis, selectedQuote.estimatedPrice]);
+  }, [preferredEstimate, selectedQuote.estimatedPrice, selectedQuote._internalEstimates, fileAnalysis]);
 
   const handleSubmit = async (newStatus: Quote['status']) => {
     if (newStatus === 'quoted' && (!formData.finalPrice || formData.finalPrice <= 0)) {
@@ -139,8 +187,93 @@ const AdminQuoteForm: React.FC<AdminQuoteFormProps> = ({
     <div className="border-t border-gray-200 pt-4">
       <h4 className="text-lg font-semibold text-gray-900 mb-4">Cotización Manual del Administrador</h4>
       
-      {/* Análisis automático basado en archivo */}
-      {fileAnalysis && (
+      {/* Estimaciones internas cifradas del backend */}
+      {selectedQuote._internalEstimates && typeof selectedQuote._internalEstimates === 'string' && (
+        <div className="mb-4 p-3 bg-blue-50 rounded border-l-4 border-blue-400">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              {isDecrypting ? (
+                <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full" />
+              ) : decryptedEstimates ? (
+                <Unlock size={16} className="text-blue-600" />
+              ) : (
+                <Shield size={16} className="text-blue-600" />
+              )}
+            </div>
+            <div className="ml-3 flex-1">
+              <div className="flex items-center justify-between">
+                <h5 className="text-sm font-medium text-blue-900">Estimación Cifrada del Sistema</h5>
+                {securityInfo?.securityLevel && (
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    {securityInfo.securityLevel === 'encrypted' ? '🔒 Cifrado' : '⚠️ Sin cifrar'}
+                  </span>
+                )}
+              </div>
+              
+              {isDecrypting ? (
+                <div className="text-sm text-blue-700 mt-2">
+                  <p>🔓 Descifrando estimaciones seguras...</p>
+                </div>
+              ) : decryptedEstimates ? (
+                <>
+                  <div className="text-sm text-blue-700 mt-1 grid grid-cols-2 gap-4">
+                    <div>
+                      <p><strong>Volumen:</strong> {decryptedEstimates.volume?.toFixed(1) || 'N/A'} cm³</p>
+                      <p><strong>Peso:</strong> {decryptedEstimates.weight?.toFixed(1) || 'N/A'}g</p>
+                      <p><strong>Tiempo impresión:</strong> {decryptedEstimates.printTime?.toFixed(1) || 'N/A'}h</p>
+                    </div>
+                    <div>
+                      <p><strong>Costo material:</strong> ${decryptedEstimates.materialCost?.toFixed(2) || 'N/A'}</p>
+                      <p><strong>Costo trabajo:</strong> ${decryptedEstimates.laborCost?.toFixed(2) || 'N/A'}</p>
+                      <p><strong>Precio calculado:</strong> ${decryptedEstimates.price?.toFixed(2) || 'N/A'}</p>
+                    </div>
+                  </div>
+                  
+                  {securityInfo?.warning && (
+                    <div className="mt-2 text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                      ⚠️ {securityInfo.warning}
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => setFormData(prev => ({
+                        ...prev,
+                        finalPrice: decryptedEstimates?.price || prev.finalPrice,
+                        estimatedDays: decryptedEstimates?.totalDays || prev.estimatedDays
+                      }))}
+                      className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                    >
+                      Usar Estimación del Sistema
+                    </button>
+                    
+                    <button
+                      onClick={decryptInternalEstimates}
+                      className="text-sm bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600"
+                    >
+                      🔄 Actualizar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-blue-700 mt-2">
+                  <p className="mb-2">🔒 Estimaciones protegidas con cifrado AES-256-GCM</p>
+                  <button
+                    onClick={decryptInternalEstimates}
+                    disabled={isDecrypting}
+                    className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:bg-gray-400"
+                  >
+                    🔓 Descifrar Estimaciones
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Análisis automático basado en archivo (solo si no hay estimaciones internas) */}
+      {!selectedQuote._internalEstimates && fileAnalysis && (
         <div className="mb-4 p-3 bg-green-50 rounded border-l-4 border-green-400">
           <div className="flex items-start">
             <div className="flex-shrink-0">

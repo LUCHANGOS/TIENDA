@@ -13,6 +13,8 @@ const Catalog: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<Color | null>(null);
   const [selectedQuality, setSelectedQuality] = useState<Quality | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const [viewMode3D, setViewMode3D] = useState(false);
+  const [loading3D, setLoading3D] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -32,6 +34,7 @@ const Catalog: React.FC = () => {
     setSelectedColor(product.colors[0] || null);
     setSelectedQuality(product.qualities[0] || null);
     setQuantity(1);
+    setViewMode3D(false); // Empezar siempre en modo imagen
   };
 
   const closeProductModal = () => {
@@ -40,6 +43,7 @@ const Catalog: React.FC = () => {
     setSelectedColor(null);
     setSelectedQuality(null);
     setQuantity(1);
+    setViewMode3D(false);
   };
 
   const handleAddToCart = () => {
@@ -269,20 +273,82 @@ const Catalog: React.FC = () => {
               </div>
 
               <div className="p-6">
-                {/* Imagen del producto */}
+                {/* Imagen del producto y Modelo 3D */}
                 <div className="mb-6">
-                  {selectedProduct.images && selectedProduct.images.length > 0 ? (
-                    <img
-                      src={selectedProduct.images[0]}
-                      alt={selectedProduct.name}
-                      className="w-full h-64 object-cover rounded-lg"
-                    />
-                  ) : (
-                    <div className="w-full h-64 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
-                      <ImageIcon size={48} className="text-gray-400" />
-                      <span className="text-4xl ml-2">{selectedProduct.category.icon}</span>
+                  {/* Pestañas para cambiar entre imagen y modelo 3D */}
+                  {selectedProduct.model3d && (
+                    <div className="flex space-x-1 mb-4 bg-gray-100 p-1 rounded-lg">
+                      <button
+                        onClick={() => setViewMode3D(false)}
+                        className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                          !viewMode3D ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        📷 Imágenes
+                      </button>
+                      <button
+                        onClick={() => {
+                          setViewMode3D(true);
+                          setLoading3D(true);
+                        }}
+                        className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+                          viewMode3D ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                        }`}
+                      >
+                        🧊 Modelo 3D
+                      </button>
                     </div>
                   )}
+                  
+                  {/* Contenedor de visualización */}
+                  <div className="w-full h-64 rounded-lg overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
+                    {viewMode3D && selectedProduct.model3d ? (
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        {/* Indicador de carga 3D */}
+                        {loading3D && (
+                          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center z-10">
+                            <div className="text-center">
+                              <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                              <p className="text-sm text-gray-600">Cargando modelo 3D...</p>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Visualizador 3D */}
+                        <model-viewer
+                          src={selectedProduct.model3d}
+                          alt={selectedProduct.name}
+                          auto-rotate
+                          camera-controls
+                          interaction-policy="allow-when-focused"
+                          style={{ width: '100%', height: '100%' }}
+                          loading="lazy"
+                          onLoad={() => setLoading3D(false)}
+                          onError={() => setLoading3D(false)}
+                        ></model-viewer>
+                        
+                        {/* Controles de ayuda */}
+                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                          🖱️ Arrastra para rotar • 🔍 Zoom con scroll
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full">
+                        {selectedProduct.images && selectedProduct.images.length > 0 ? (
+                          <img
+                            src={selectedProduct.images[0]}
+                            alt={selectedProduct.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon size={48} className="text-gray-400" />
+                            <span className="text-4xl ml-2">{selectedProduct.category.icon}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Descripción */}

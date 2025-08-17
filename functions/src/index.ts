@@ -4,6 +4,14 @@ import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/fire
 import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
 import cors from "cors";
+import { 
+  encryptInternalEstimates, 
+  decryptInternalEstimates,
+  encryptFileReference,
+  signData,
+  validateDataIntegrity,
+  generateSecureHash
+} from "./utils/encryption";
 
 // Función de prueba simple usando v2
 export const helloWorld = onRequest((request, response) => {
@@ -633,14 +641,34 @@ export const onQuoteCreated = onDocumentCreated('quotes/{quoteId}', async (event
         quote.quantity || 1
       );
       
-      // Actualizar el documento de cotización con las estimaciones
+      // Preparar datos de estimaciones internas con información completa
+      const internalEstimatesData = {
+        price: parseFloat(estimates.estimatedPrice),
+        printTime: parseFloat(estimates.estimatedPrintTime),
+        volume: parseFloat(estimates.estimatedVolume),
+        weight: parseFloat(estimates.estimatedWeight),
+        totalDays: estimates.totalDays,
+        materialCost: parseFloat(estimates.breakdown.materialCost),
+        laborCost: parseFloat(estimates.breakdown.laborCost),
+        calculatedAt: Date.now(),
+        quoteId: quoteId,
+        breakdown: estimates.breakdown
+      };
+      
+      // Cifrar las estimaciones internas para máxima seguridad
+      const encryptedEstimates = encryptInternalEstimates(internalEstimatesData);
+      
+      // Generar firma digital para integridad
+      const dataSignature = signData(internalEstimatesData);
+      
+      // Actualizar el documento con datos cifrados
       await event.data.ref.update({
-        estimatedPrice: parseFloat(estimates.estimatedPrice),
-        estimatedPrintTime: parseFloat(estimates.estimatedPrintTime),
-        estimatedVolume: parseFloat(estimates.estimatedVolume),
-        estimatedWeight: parseFloat(estimates.estimatedWeight),
-        totalEstimatedDays: estimates.totalDays,
-        autoCalculatedAt: admin.firestore.FieldValue.serverTimestamp()
+        // Estimaciones cifradas - solo el admin puede descifrarlas
+        _internalEstimates: encryptedEstimates,
+        _dataSignature: dataSignature,
+        _securityLevel: 'encrypted',
+        _lastCalculated: admin.firestore.FieldValue.serverTimestamp()
+        // NO se guarda estimatedPrice visible al cliente
       });
       
       console.log('📊 Estimaciones calculadas y guardadas:', estimates);
@@ -693,8 +721,9 @@ export const onQuoteCreated = onDocumentCreated('quotes/{quoteId}', async (event
         
         // Lista de emails de administradores (puedes configurar esto en Firebase Config)
         const adminEmails = [
-          'admin@wwwnewtonic.com',
-          'soporte@wwwnewtonic.com'
+          'soporte@wwwnewtonic.com',
+          'info@wwwnewtonic.com',
+          'admin@wwwnewtonic.com'
           // Agregar más emails de administradores según sea necesario
         ];
         
@@ -842,6 +871,126 @@ export const onOrderUpdated = onDocumentUpdated('orders/{orderId}', async (event
       return null;
     }
   });
+
+// ===================== FUNCIONES SEGURAS PARA ADMINISTRADORES =====================
+
+// Función segura para descifrar estimaciones internas (solo para administradores)
+export const decryptQuoteEstimates = onCall({
+  enforceAppCheck: true, // Verificar que la llamada venga de la app
+}, async (request) => {
+  try {
+    const { quoteId } = request.data;
+    const userAuth = request.auth;
+    
+    // Verificar que el usuario esté autenticado
+    if (!userAuth) {
+      throw new HttpsError('unauthenticated', 'Usuario no autenticado');
+    }
+    
+    // Verificar que el usuario sea administrador
+    const userDoc = await admin.firestore().collection('adminUsers').doc(userAuth.uid).get();
+    if (!userDoc.exists || !userDoc.data()?.role) {
+      throw new HttpsError('permission-denied', 'Acceso denegado: no es administrador');
+    }
+    
+    console.log('🔓 Descifrado autorizado para admin:', userAuth.uid, 'Quote:', quoteId);
+    
+    // Obtener la cotización
+    const quoteDoc = await admin.firestore().collection('quotes').doc(quoteId).get();
+    if (!quoteDoc.exists) {
+      throw new HttpsError('not-found', 'Cotización no encontrada');
+    }
+    
+    const quoteData = quoteDoc.data();
+    if (!quoteData?._internalEstimates) {
+      throw new HttpsError('not-found', 'No hay estimaciones cifradas');
+    }
+    
+    // Validar integridad de los datos
+    if (quoteData._dataSignature) {
+      // Descifrar primero para validar
+      const decryptedData = decryptInternalEstimates(quoteData._internalEstimates);
+      const isValid = validateDataIntegrity(decryptedData, quoteData._dataSignature);
+      
+      if (!isValid) {
+        console.error('❌ Integridad de datos comprometida para quote:', quoteId);
+        throw new HttpsError('data-loss', 'La integridad de los datos ha sido comprometida');
+      }
+      
+      console.log('✅ Integridad de datos verificada para quote:', quoteId);
+      return { 
+        success: true, 
+        estimates: decryptedData,
+        securityLevel: quoteData._securityLevel,
+        lastCalculated: quoteData._lastCalculated
+      };
+    } else {
+      // Datos sin firma - descifrar de todos modos pero advertir
+      console.warn('⚠️ Datos sin firma digital para quote:', quoteId);
+      const decryptedData = decryptInternalEstimates(quoteData._internalEstimates);
+      
+      return { 
+        success: true, 
+        estimates: decryptedData,
+        warning: 'Datos sin verificación de integridad',
+        securityLevel: quoteData._securityLevel || 'unknown',
+        lastCalculated: quoteData._lastCalculated
+      };
+    }
+    
+  } catch (error) {
+    console.error('❌ Error descifrando estimaciones:', error);
+    
+    if (error instanceof HttpsError) {
+      throw error;
+    }
+    
+    throw new HttpsError('internal', 'Error procesando estimaciones cifradas');
+  }
+});
+
+// Función segura para generar URLs de archivos temporales
+export const generateSecureFileUrl = onCall({
+  enforceAppCheck: true,
+}, async (request) => {
+  try {
+    const { quoteId, fileName } = request.data;
+    const userAuth = request.auth;
+    
+    // Verificar autenticación y permisos de admin
+    if (!userAuth) {
+      throw new HttpsError('unauthenticated', 'Usuario no autenticado');
+    }
+    
+    const userDoc = await admin.firestore().collection('adminUsers').doc(userAuth.uid).get();
+    if (!userDoc.exists || !userDoc.data()?.role) {
+      throw new HttpsError('permission-denied', 'Acceso denegado');
+    }
+    
+    // Generar URL segura temporal (2 horas)
+    const fileReference = encryptFileReference({
+      storagePath: `quotes/${quoteId}/${fileName}`,
+      originalName: fileName,
+      quoteId: quoteId
+    });
+    
+    // Generar hash seguro para la URL
+    const secureToken = generateSecureHash(`${quoteId}-${fileName}-${userAuth.uid}`);
+    
+    console.log('🔗 URL segura generada para admin:', userAuth.uid, 'File:', fileName);
+    
+    return {
+      success: true,
+      encryptedReference: fileReference,
+      secureToken: secureToken,
+      expiresIn: '2 hours'
+    };
+    
+  } catch (error) {
+    console.error('❌ Error generando URL segura:', error);
+    throw new HttpsError('internal', 'Error generando URL de archivo');
+  }
+});
 
 // ===================== FUNCIÓN HTTP GENERAL =====================
 

@@ -219,8 +219,8 @@ const Quote: React.FC = () => {
         ...(selectedColor && { color: selectedColor }),
         quantity: formData.quantity,
         urgency: formData.urgency,
-        ...(formData.notes && formData.notes.trim() && { notes: formData.notes }),
-        ...(estimate?.total && { estimatedPrice: estimate.total })
+        ...(formData.notes && formData.notes.trim() && { notes: formData.notes })
+        // No incluir precio estimado - solo para análisis interno del admin
       };
       
       const id = await submitQuote(quoteData);

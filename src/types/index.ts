@@ -52,6 +52,22 @@ export interface Quote {
   estimatedDays?: number;
   status: 'pending' | 'processing' | 'quoted' | 'accepted' | 'rejected';
   adminNotes?: string;
+  _internalEstimates?: {
+    volume: number;
+    weight: number;
+    printTime: number;
+    materialCost: number;
+    laborCost: number;
+    price: number;
+    totalDays: number;
+    breakdown?: {
+      basePrice: number;
+      qualityMultiplier: number;
+      colorSurcharge: number;
+      urgencyMultiplier: number;
+      profitMargin: number;
+    };
+  };
   createdAt: string;
   updatedAt: string;
 }
