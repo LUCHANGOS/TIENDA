@@ -185,8 +185,21 @@ export const useAppStore = create<StoreState>()(
         try {
           set({ loading: true, error: null });
           
+          console.log('🔐 Intentando login con:', { email, timestamp: new Date().toISOString() });
+          console.log('🔥 Firebase Auth instance:', { 
+            app: auth.app.name, 
+            config: auth.config,
+            currentUser: auth.currentUser 
+          });
+          
           // Login con Firebase Authentication
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          
+          console.log('✅ Login exitoso:', { 
+            uid: userCredential.user.uid,
+            email: userCredential.user.email,
+            emailVerified: userCredential.user.emailVerified
+          });
           
           // Verificación de admin para emails específicos
           const adminEmails = ['Luisneyra049@gmail.com', 'luisneyra049@gmail.com', 'admin@newtonic3d.com'];
@@ -201,7 +214,39 @@ export const useAppStore = create<StoreState>()(
 
           set({ user, loading: false });
         } catch (error: any) {
-          set({ error: error.message, loading: false });
+          console.error('❌ Error de autenticación:', {
+            code: error.code,
+            message: error.message,
+            email: email,
+            timestamp: new Date().toISOString()
+          });
+          
+          // Mensajes de error más específicos
+          let errorMessage = 'Error de autenticación';
+          switch (error.code) {
+            case 'auth/user-not-found':
+              errorMessage = 'Usuario no encontrado';
+              break;
+            case 'auth/wrong-password':
+              errorMessage = 'Contraseña incorrecta';
+              break;
+            case 'auth/invalid-email':
+              errorMessage = 'Email inválido';
+              break;
+            case 'auth/user-disabled':
+              errorMessage = 'Usuario deshabilitado';
+              break;
+            case 'auth/too-many-requests':
+              errorMessage = 'Demasiados intentos. Intenta más tarde';
+              break;
+            case 'auth/network-request-failed':
+              errorMessage = 'Error de conexión';
+              break;
+            default:
+              errorMessage = `Error: ${error.code} - ${error.message}`;
+          }
+          
+          set({ error: errorMessage, loading: false });
           throw error;
         }
       },
