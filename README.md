@@ -191,7 +191,7 @@ La aplicación estará disponible en: `https://LUCHANGOS.github.io/TIENDA/`
 - 🌐 **Web**: nzlab.cl (próximamente)
 
 ### 🚀 Servicios Destacados
-- Impresión 3D profesional (precisión 0.1mm)
+- Impresión 3D profesional (precisión 0.2mm - boquilla mínima)
 - Diseño 3D personalizado
 - Entregas rápidas: Copiapó (24-48h) | Nacional (5-7d)
 - Más de 15 materiales disponibles
@@ -208,4 +208,4 @@ La aplicación estará disponible en: `https://LUCHANGOS.github.io/TIENDA/`
 
 **NZLAB - Transformamos tus ideas en realidad** 🚀
 
-*Diseño e impresión 3D con pasión* ❤️
+*Empresa fundada en 2025 - Diseño e impresión 3D con pasión* ❤️

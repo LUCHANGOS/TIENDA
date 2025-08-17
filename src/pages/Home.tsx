@@ -53,10 +53,10 @@ const Home: React.FC = () => {
   ];
 
   const stats = [
-    { label: 'Año de Fundación', value: '2024', icon: CheckCircle },
+    { label: 'Año de Fundación', value: '2025', icon: CheckCircle },
     { label: 'Entrega Local', value: '24-48h', icon: Clock },
     { label: 'Entrega Nacional', value: '5-7d', icon: Package },
-    { label: 'Precisión', value: '0.1mm', icon: Star }
+    { label: 'Precisión', value: '0.2mm', icon: Star }
   ];
 
   return (

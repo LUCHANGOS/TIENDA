@@ -307,7 +307,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400 font-comic">
-            <p>© 2024 NZLAB. Diseño e impresión 3D con pasión ❤️</p>
+            <p>© 2025 NZLAB. Diseño e impresión 3D con pasión ❤️</p>
           </div>
         </div>
       </footer>
