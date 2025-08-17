@@ -8,10 +8,29 @@ export default defineConfig(({ command }) => {
     build: {
       outDir: 'dist',
       assetsDir: 'assets',
+      sourcemap: false,
+      minify: 'terser',
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+            firebase: ['firebase/app', 'firebase/auth', 'firebase/database', 'firebase/storage']
+          }
+        }
+      }
     },
     server: {
       port: 3000,
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8'
+      }
     },
+    preview: {
+      port: 4173,
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8'
+      }
+    }
   }
 
   if (command === 'serve') {

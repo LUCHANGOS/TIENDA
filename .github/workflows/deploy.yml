@@ -47,12 +47,20 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
           VITE_BUILD_TIMESTAMP: ${{ github.run_number }}-${{ github.sha }}
-        run: npm run build
+        run: |
+          npm run build
+          # Copy .htaccess for Apache server configuration
+          cp public/.htaccess dist/.htaccess || true
+          # List build output for debugging
+          ls -la dist/
+          echo "Build completed successfully"
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
+          # Ensure proper MIME types
+          retention-days: 30
 
   # Deployment job
   deploy:
