@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reglas para productos - público para lectura, solo admins para escritura
+    match /products/{productId} {
+      allow read: if true; // Público para el catálogo
+      allow write: if request.auth != null && 
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    // Reglas para cotizaciones - permitir creación pública, solo propietario/admin para lectura
+    match /quotes/{quoteId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com']);
+      allow create: if true; // Permitir cotizaciones de usuarios no autenticados
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.userId || 
+         request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com']);
+      allow delete: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    // Reglas para pedidos - permitir creación pública, solo propietario/admin para lectura
+    match /orders/{orderId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com']);
+      allow create: if true; // Permitir pedidos de usuarios no autenticados
+      allow update: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+      allow delete: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    // Reglas para carritos de compra
+    match /carts/{cartId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || cartId == request.auth.uid);
+      allow create: if true; // Permitir carritos de sesión anónima
+    }
+    
+    // Reglas para categorías de productos
+    match /categories/{categoryId} {
+      allow read: if true; // Público
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    // Reglas para materiales, colores, calidades
+    match /materials/{materialId} {
+      allow read: if true; // Público
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    match /colors/{colorId} {
+      allow read: if true; // Público  
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    match /qualities/{qualityId} {
+      allow read: if true; // Público
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    // Reglas para configuración general
+    match /settings/{settingId} {
+      allow read: if true; // Público para configuración básica
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com'];
+    }
+    
+    // Reglas para usuarios
+    match /users/{userId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == userId ||
+         request.auth.token.email in ['luisnicolasgonzalez64@gmail.com', 'luisneyra049@gmail.com']);
+    }
+  }
+}
