@@ -15,7 +15,9 @@ import {
   DollarSign,
   Settings,
   Save,
-  X
+  X,
+  Download,
+  Archive
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { Navigate } from 'react-router-dom';
@@ -71,6 +73,46 @@ const Admin: React.FC = () => {
       setSelectedQuote(null);
     } catch (error) {
       console.error('Error updating quote:', error);
+    }
+  };
+
+  // Descargar archivo individual
+  const handleDownloadFile = async (file: any) => {
+    try {
+      console.log('🔄 Descargando archivo:', file.name);
+      
+      // Crear elemento de enlace temporal
+      const link = document.createElement('a');
+      link.href = file.url;
+      link.download = file.name;
+      link.target = '_blank';
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log('✅ Descarga iniciada:', file.name);
+    } catch (error) {
+      console.error('❌ Error descargando archivo:', error);
+      alert(`Error descargando ${file.name}: ${error}`);
+    }
+  };
+
+  // Descargar todos los archivos de una cotización
+  const handleDownloadAllFiles = async (quote: Quote) => {
+    try {
+      console.log('🔄 Descargando todos los archivos de:', quote.name);
+      
+      for (const file of quote.files) {
+        await new Promise(resolve => setTimeout(resolve, 500)); // Delay entre descargas
+        await handleDownloadFile(file);
+      }
+      
+      console.log('✅ Descarga completa para cotización:', quote.id);
+    } catch (error) {
+      console.error('❌ Error descargando archivos:', error);
+      alert(`Error descargando archivos: ${error}`);
     }
   };
 
@@ -467,6 +509,47 @@ const Admin: React.FC = () => {
                       <p className="text-sm mt-1">{selectedQuote.notes}</p>
                     </div>
                   )}
+                  
+                  {/* Archivos de la cotización */}
+                  <div className="p-3 bg-blue-50 rounded">
+                    <div className="flex items-center justify-between mb-3">
+                      <strong className="flex items-center space-x-2">
+                        <FileText size={16} className="text-blue-600" />
+                        <span>Archivos ({selectedQuote.files.length})</span>
+                      </strong>
+                      {selectedQuote.files.length > 1 && (
+                        <button
+                          onClick={() => handleDownloadAllFiles(selectedQuote)}
+                          className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 flex items-center space-x-1"
+                        >
+                          <Archive size={14} />
+                          <span>Descargar Todo</span>
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      {selectedQuote.files.map((file, index) => (
+                        <div key={file.id || index} className="flex items-center justify-between p-2 bg-white rounded border">
+                          <div className="flex items-center space-x-2">
+                            <FileText size={16} className="text-blue-600" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB • {file.type}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDownloadFile(file)}
+                            className="bg-green-600 text-white px-2 py-1 rounded text-xs hover:bg-green-700 flex items-center space-x-1"
+                          >
+                            <Download size={12} />
+                            <span>Descargar</span>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                   
                   <div className="flex space-x-2">
                     <button

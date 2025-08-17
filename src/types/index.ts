@@ -62,6 +62,7 @@ export interface QuoteFile {
   size: number;
   type: string;
   url: string;
+  storagePath?: string; // Ruta en Firebase Storage para descarga
   estimatedVolume?: number;
   estimatedPrintTime?: number;
 }

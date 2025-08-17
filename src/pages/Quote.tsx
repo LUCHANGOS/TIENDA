@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import type { QuoteFile } from '../types';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../lib/firebase';
 
 interface FileUpload {
   file: File;
@@ -171,19 +173,47 @@ const Quote: React.FC = () => {
     if (!validateStep(3) || !selectedMaterial || !selectedQuality) return;
     
     try {
-      // En una implementación real, subirías los archivos a un servicio de almacenamiento
-      const quoteFiles: Omit<QuoteFile, 'id'>[] = files.map(f => ({
-        name: f.name,
-        size: f.size,
-        type: f.type,
-        url: `placeholder_url_${f.id}` // En producción, sería la URL real del archivo subido
-      }));
+      setErrors({ submit: '' });
+      
+      // Subir archivos a Firebase Storage
+      console.log('🔄 Subiendo archivos a Firebase Storage...');
+      const uploadPromises = files.map(async (file) => {
+        try {
+          // Crear un nombre único para el archivo
+          const timestamp = Date.now();
+          const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+          const filename = `quotes/uploads/${timestamp}_${sanitizedName}`;
+          
+          // Crear referencia y subir archivo
+          const fileRef = storageRef(storage, filename);
+          console.log(`📤 Subiendo archivo: ${file.name}`);
+          
+          const uploadResult = await uploadBytes(fileRef, file.file);
+          const downloadURL = await getDownloadURL(fileRef);
+          
+          console.log(`✅ Archivo subido exitosamente: ${file.name}`);
+          
+          return {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            url: downloadURL,
+            storagePath: filename // Guardar la ruta para referencia
+          } as QuoteFile;
+        } catch (fileError) {
+          console.error(`❌ Error subiendo archivo ${file.name}:`, fileError);
+          throw new Error(`Error subiendo archivo ${file.name}: ${fileError}`);
+        }
+      });
+      
+      const uploadedFiles = await Promise.all(uploadPromises);
+      console.log('🎉 Todos los archivos subidos exitosamente');
       
       const quoteData = {
         name: formData.name,
         email: formData.email,
         ...(formData.phone && formData.phone.trim() && { phone: formData.phone }),
-        files: quoteFiles as QuoteFile[],
+        files: uploadedFiles,
         material: selectedMaterial,
         quality: selectedQuality,
         ...(selectedColor && { color: selectedColor }),
@@ -198,7 +228,7 @@ const Quote: React.FC = () => {
       setSubmitted(true);
     } catch (error) {
       console.error('Error al enviar cotización:', error);
-      setErrors({ submit: 'Error al enviar la cotización. Inténtalo de nuevo.' });
+      setErrors({ submit: `Error al enviar la cotización: ${error}` });
     }
   };
 

@@ -30,6 +30,7 @@ import {
   get as dbGet
 } from 'firebase/database';
 import { auth, database } from '../lib/firebase';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 // Datos iniciales
 const initialCategories: ProductCategory[] = [
@@ -463,6 +464,28 @@ export const useAppStore = create<StoreState>()(
             loading: false 
           }));
           
+          // 📧 Enviar email de confirmación al cliente
+          try {
+            const functions = getFunctions();
+            const sendQuoteConfirmation = httpsCallable(functions, 'sendQuoteConfirmation');
+            
+            await sendQuoteConfirmation({
+              quoteId: newQuoteRef.key!,
+              customerName: quoteData.name,
+              customerEmail: quoteData.email,
+              material: quoteData.material.name,
+              quality: quoteData.quality.name,
+              quantity: quoteData.quantity,
+              urgency: quoteData.urgency,
+              fileCount: quoteData.files.length
+            });
+            
+            console.log('✅ Email de confirmación enviado a:', quoteData.email);
+          } catch (emailError) {
+            console.error('⚠️ Error enviando email de confirmación:', emailError);
+            // No interrumpir el flujo si falla el email
+          }
+          
           return newQuoteRef.key!;
         } catch (error: any) {
           set({ error: error.message, loading: false });
@@ -498,7 +521,7 @@ export const useAppStore = create<StoreState>()(
       },
 
       updateQuoteStatus: async (id: string, status, adminNotes, estimatedPrice, estimatedDays) => {
-        const { user } = get();
+        const { user, quotes } = get();
         if (!user?.isAdmin) throw new Error('No autorizado');
 
         try {
@@ -521,6 +544,30 @@ export const useAppStore = create<StoreState>()(
             ),
             loading: false
           }));
+          
+          // 📧 Enviar email de actualización al cliente
+          try {
+            const quote = quotes.find(q => q.id === id);
+            if (quote) {
+              const functions = getFunctions();
+              const sendQuoteStatusUpdate = httpsCallable(functions, 'sendQuoteStatusUpdate');
+              
+              await sendQuoteStatusUpdate({
+                quoteId: id,
+                customerName: quote.name,
+                customerEmail: quote.email,
+                status,
+                estimatedPrice,
+                estimatedDays,
+                adminNotes
+              });
+              
+              console.log('✅ Email de actualización enviado a:', quote.email);
+            }
+          } catch (emailError) {
+            console.error('⚠️ Error enviando email de actualización:', emailError);
+            // No interrumpir el flujo si falla el email
+          }
         } catch (error: any) {
           set({ error: error.message, loading: false });
           throw error;
