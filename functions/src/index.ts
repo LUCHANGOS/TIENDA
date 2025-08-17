@@ -1,11 +1,13 @@
 import * as functions from "firebase-functions";
+import { onCall, onRequest, HttpsError } from "firebase-functions/v2/https";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
 import cors from "cors";
 
-// Función de prueba simple
-export const helloWorld = functions.https.onRequest((request, response) => {
-  response.json({result: "Hello from NewTonic3D!", timestamp: new Date().toISOString()});
+// Función de prueba simple usando v2
+export const helloWorld = onRequest((request, response) => {
+  response.json({result: "Hello from NewTonic3D v2!", timestamp: new Date().toISOString()});
 });
 
 // Inicializar Firebase Admin
@@ -319,12 +321,124 @@ const emailTemplates = {
         </div>
       </div>
     `
+  }),
+  
+  // Nueva plantilla para notificación a administradores de nueva cotización
+  adminQuoteNotification: (data: any) => ({
+    subject: `🔔 Nueva Cotización Recibida - ${data.quoteId} de ${data.customerName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🔔 ADMIN - NewTonic 3D</h1>
+          <p style="color: white; margin: 10px 0 0 0; opacity: 0.9;">Nueva Cotización Recibida</p>
+        </div>
+        
+        <div style="padding: 30px; background: white;">
+          <h2 style="color: #333; margin-bottom: 20px;">Nueva cotización de: ${data.customerName}</h2>
+          
+          <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ff9800;">
+            <h3 style="color: #f57c00; margin-top: 0;">📊 Estimación Automática del Sistema</h3>
+            <p><strong>💰 Precio estimado:</strong> $${data.estimatedPrice}</p>
+            <p><strong>⏱️ Tiempo de impresión:</strong> ${data.estimatedPrintTime} horas</p>
+            <p><strong>📏 Volumen estimado:</strong> ${data.estimatedVolume} cm³</p>
+            <p><strong>⚖️ Peso estimado:</strong> ${data.estimatedWeight} gramos</p>
+            <p><strong>🚚 Tiempo total (impresión + envío):</strong> ${data.totalDays} días hábiles</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #333; margin-top: 0;">Detalles de la cotización:</h3>
+            <p><strong>ID:</strong> ${data.quoteId}</p>
+            <p><strong>Cliente:</strong> ${data.customerName}</p>
+            <p><strong>Email:</strong> ${data.customerEmail}</p>
+            <p><strong>Teléfono:</strong> ${data.customerPhone || 'No proporcionado'}</p>
+            <p><strong>Material:</strong> ${data.material}</p>
+            <p><strong>Color:</strong> ${data.color}</p>
+            <p><strong>Calidad:</strong> ${data.quality}</p>
+            <p><strong>Cantidad:</strong> ${data.quantity}</p>
+            <p><strong>Urgencia:</strong> ${data.urgency}</p>
+            <p><strong>Archivos:</strong> ${data.fileCount} archivo(s)</p>
+            ${data.notes ? `<p><strong>Notas del cliente:</strong> ${data.notes}</p>` : ''}
+          </div>
+          
+          <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3;">
+            <p style="margin: 0; color: #1976D2;">
+              <strong>📋 Acciones recomendadas:</strong><br>
+              1. Revisar archivos 3D subidos<br>
+              2. Verificar estimación automática<br>
+              3. Ajustar precio final según complejidad<br>
+              4. Actualizar estado a "Cotizado" para enviar al cliente
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px;">
+            <a href="https://console.firebase.google.com/project/tienda-de81e/firestore" 
+               style="background: #4361ee; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+               Ver en Panel Admin
+            </a>
+          </div>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #eee;">
+          <p style="color: #666; font-size: 12px; margin: 0;">
+            NewTonic 3D - Sistema de Administración<br>
+            📧 Panel de administradores
+          </p>
+        </div>
+      </div>
+    `
   })
 };
 
+// Función auxiliar para calcular estimaciones de impresión
+const calculatePrintingEstimate = (fileData: any, material: any, quality: any, color: any, quantity: number) => {
+  // Factores base
+  const baseMaterialCost = material?.pricePerGram || 0.5; // USD por gramo
+  const baseVolume = fileData?.estimatedVolume || 10; // cm³ por defecto
+  const density = material?.density || 1.2; // g/cm³
+  
+  // Calcular peso
+  const weight = baseVolume * density * quantity;
+  
+  // Multiplicadores por calidad
+  const qualityMultipliers = {
+    'draft': 0.8,
+    'standard': 1.0,
+    'fine': 1.5,
+    'ultrafine': 2.0
+  };
+  const qualityMultiplier = qualityMultipliers[quality?.name?.toLowerCase()] || 1.0;
+  
+  // Multiplicadores por color
+  const colorSurcharge = color?.surcharge || 0; // porcentaje adicional
+  const colorMultiplier = 1 + (colorSurcharge / 100);
+  
+  // Calcular tiempo de impresión (horas)
+  const baseTimePerCm3 = 0.5; // horas por cm³
+  const printTime = (baseVolume * quantity * qualityMultiplier).toFixed(1);
+  
+  // Calcular costos
+  const materialCost = weight * baseMaterialCost;
+  const laborCost = parseFloat(printTime) * 5; // $5 USD por hora
+  const subtotal = (materialCost + laborCost) * colorMultiplier;
+  const total = subtotal * 1.15; // 15% margen
+  
+  // Días total (impresión + 2 días de envío)
+  const printDays = Math.ceil(parseFloat(printTime) / 8); // 8 horas por día
+  const totalDays = printDays + 2; // + 2 días de envío
+  
+  return {
+    estimatedPrice: total.toFixed(2),
+    estimatedPrintTime: printTime,
+    estimatedVolume: (baseVolume * quantity).toFixed(1),
+    estimatedWeight: weight.toFixed(1),
+    totalDays: totalDays
+  };
+};
+
 // Función para enviar email de confirmación cuando se recibe una cotización
-export const sendQuoteConfirmation = functions.https.onCall(async (data, context) => {
+export const sendQuoteConfirmation = onCall(async (request) => {
   try {
+    const data = request.data;
     console.log('📧 Enviando confirmación de cotización:', data.quoteId);
     
     const transporter = createTransporter();
@@ -344,13 +458,14 @@ export const sendQuoteConfirmation = functions.https.onCall(async (data, context
     
   } catch (error) {
     console.error('❌ Error enviando email:', error);
-    throw new functions.https.HttpsError('internal', 'Error enviando email');
+    throw new HttpsError('internal', 'Error enviando email');
   }
 });
 
 // Función para enviar actualizaciones de estado de cotización
-export const sendQuoteStatusUpdate = functions.https.onCall(async (data, context) => {
+export const sendQuoteStatusUpdate = onCall(async (request) => {
   try {
+    const data = request.data;
     console.log('📧 Enviando actualización de estado:', data.quoteId, data.status);
     
     const transporter = createTransporter();
@@ -370,15 +485,16 @@ export const sendQuoteStatusUpdate = functions.https.onCall(async (data, context
     
   } catch (error) {
     console.error('❌ Error enviando email de actualización:', error);
-    throw new functions.https.HttpsError('internal', 'Error enviando email de actualización');
+    throw new HttpsError('internal', 'Error enviando email de actualización');
   }
 });
 
 // ===================== FUNCIONES PARA PEDIDOS DE CATÁLOGO =====================
 
 // Función para enviar confirmación de pedido de catálogo
-export const sendOrderConfirmation = functions.https.onCall(async (data, context) => {
+export const sendOrderConfirmation = onCall(async (request) => {
   try {
+    const data = request.data;
     console.log('📧 Enviando confirmación de pedido:', data.orderId);
     
     const transporter = createTransporter();
@@ -398,13 +514,14 @@ export const sendOrderConfirmation = functions.https.onCall(async (data, context
     
   } catch (error) {
     console.error('❌ Error enviando email de confirmación de pedido:', error);
-    throw new functions.https.HttpsError('internal', 'Error enviando email de confirmación');
+    throw new HttpsError('internal', 'Error enviando email de confirmación');
   }
 });
 
 // Función para enviar actualizaciones de estado de pedido
-export const sendOrderStatusUpdate = functions.https.onCall(async (data, context) => {
+export const sendOrderStatusUpdate = onCall(async (request) => {
   try {
+    const data = request.data;
     console.log('📧 Enviando actualización de pedido:', data.orderId, data.status);
     
     const transporter = createTransporter();
@@ -424,7 +541,7 @@ export const sendOrderStatusUpdate = functions.https.onCall(async (data, context
     
   } catch (error) {
     console.error('❌ Error enviando email de actualización de pedido:', error);
-    throw new functions.https.HttpsError('internal', 'Error enviando email de actualización');
+    throw new HttpsError('internal', 'Error enviando email de actualización');
   }
 });
 
@@ -471,29 +588,109 @@ const sendEmailFromTrigger = async (type: string, data: any) => {
 };
 
 // Trigger automático: Enviar email cuando se crea una cotización
-export const onQuoteCreated = functions.firestore
-  .document('quotes/{quoteId}')
-  .onCreate(async (snapshot, context) => {
+export const onQuoteCreated = onDocumentCreated('quotes/{quoteId}', async (event) => {
     try {
-      const quote = snapshot.data();
-      console.log('🔔 Nueva cotización creada:', context.params.quoteId);
+      const quote = event.data?.data();
+      const quoteId = event.params?.quoteId;
+      if (!quote || !quoteId) {
+        console.error('❌ No se pudo obtener los datos de la cotización');
+        return null;
+      }
+      console.log('🔔 Nueva cotización creada:', quoteId);
       
-      const emailData = {
-        quoteId: context.params.quoteId,
+      // Calcular estimaciones automáticas
+      const estimates = calculatePrintingEstimate(
+        quote.files?.[0] || {}, // Usar el primer archivo como referencia
+        quote.material,
+        quote.quality,
+        quote.color,
+        quote.quantity || 1
+      );
+      
+      // Actualizar el documento de cotización con las estimaciones
+      await event.data.ref.update({
+        estimatedPrice: parseFloat(estimates.estimatedPrice),
+        estimatedPrintTime: parseFloat(estimates.estimatedPrintTime),
+        estimatedVolume: parseFloat(estimates.estimatedVolume),
+        estimatedWeight: parseFloat(estimates.estimatedWeight),
+        totalEstimatedDays: estimates.totalDays,
+        autoCalculatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      
+      console.log('📊 Estimaciones calculadas y guardadas:', estimates);
+      
+      // Datos para email de confirmación al cliente (SIN PRECIO)
+      const customerEmailData = {
+        quoteId: quoteId,
         customerName: quote.name,
         customerEmail: quote.email,
         material: quote.material.name,
         quality: quote.quality.name,
+        color: quote.color?.name || 'No especificado',
         quantity: quote.quantity,
         urgency: quote.urgency,
         fileCount: quote.files?.length || 0
       };
       
-      // Enviar email de confirmación
-      const result = await sendEmailFromTrigger('quote_received', emailData);
-      console.log('✅ Email automático de cotización enviado');
+      // Datos para notificación a administradores (CON ESTIMACIONES)
+      const adminEmailData = {
+        quoteId: quoteId,
+        customerName: quote.name,
+        customerEmail: quote.email,
+        customerPhone: quote.phone,
+        material: quote.material.name,
+        quality: quote.quality.name,
+        color: quote.color?.name || 'No especificado',
+        quantity: quote.quantity,
+        urgency: quote.urgency,
+        fileCount: quote.files?.length || 0,
+        notes: quote.notes,
+        estimatedPrice: estimates.estimatedPrice,
+        estimatedPrintTime: estimates.estimatedPrintTime,
+        estimatedVolume: estimates.estimatedVolume,
+        estimatedWeight: estimates.estimatedWeight,
+        totalDays: estimates.totalDays
+      };
       
-      return result;
+      // Enviar email de confirmación al cliente
+      try {
+        await sendEmailFromTrigger('quote_received', customerEmailData);
+        console.log('✅ Email de confirmación enviado al cliente');
+      } catch (error) {
+        console.error('❌ Error enviando email al cliente:', error);
+      }
+      
+      // Enviar notificación a administradores
+      try {
+        const transporter = createTransporter();
+        const adminTemplate = emailTemplates.adminQuoteNotification(adminEmailData);
+        
+        // Lista de emails de administradores (puedes configurar esto en Firebase Config)
+        const adminEmails = [
+          'admin@wwwnewtonic.com',
+          'soporte@wwwnewtonic.com'
+          // Agregar más emails de administradores según sea necesario
+        ];
+        
+        for (const adminEmail of adminEmails) {
+          const adminMailOptions = {
+            from: `"NewTonic 3D System" <noreply@wwwnewtonic.com>`,
+            to: adminEmail,
+            subject: adminTemplate.subject,
+            html: adminTemplate.html
+          };
+          
+          await transporter.sendMail(adminMailOptions);
+          console.log('✅ Notificación enviada al admin:', adminEmail);
+        }
+        
+        console.log('✅ Todas las notificaciones de administradores enviadas');
+        
+      } catch (error) {
+        console.error('❌ Error enviando notificaciones a administradores:', error);
+      }
+      
+      return { success: true, estimates };
       
     } catch (error) {
       console.error('❌ Error en trigger de cotización:', error);
@@ -502,19 +699,23 @@ export const onQuoteCreated = functions.firestore
   });
 
 // Trigger automático: Enviar email cuando se actualiza el estado de una cotización
-export const onQuoteUpdated = functions.firestore
-  .document('quotes/{quoteId}')
-  .onUpdate(async (change, context) => {
+export const onQuoteUpdated = onDocumentUpdated('quotes/{quoteId}', async (event) => {
     try {
-      const before = change.before.data();
-      const after = change.after.data();
+      const before = event.data?.before.data();
+      const after = event.data?.after.data();
+      const quoteId = event.params?.quoteId;
+      
+      if (!before || !after || !quoteId) {
+        console.error('❌ No se pudieron obtener los datos del documento');
+        return null;
+      }
       
       // Solo enviar si el estado cambió
       if (before.status !== after.status) {
-        console.log('🔔 Estado de cotización actualizado:', context.params.quoteId, after.status);
+        console.log('🔔 Estado de cotización actualizado:', quoteId, after.status);
         
         const emailData = {
-          quoteId: context.params.quoteId,
+          quoteId: quoteId,
           customerName: after.name,
           customerEmail: after.email,
           status: after.status,
@@ -539,15 +740,20 @@ export const onQuoteUpdated = functions.firestore
   });
 
 // Trigger automático: Enviar email cuando se crea un pedido
-export const onOrderCreated = functions.firestore
-  .document('orders/{orderId}')
-  .onCreate(async (snapshot, context) => {
+export const onOrderCreated = onDocumentCreated('orders/{orderId}', async (event) => {
     try {
-      const order = snapshot.data();
-      console.log('🔔 Nuevo pedido creado:', context.params.orderId);
+      const order = event.data?.data();
+      const orderId = event.params?.orderId;
+      
+      if (!order || !orderId) {
+        console.error('❌ No se pudieron obtener los datos del pedido');
+        return null;
+      }
+      
+      console.log('🔔 Nuevo pedido creado:', orderId);
       
       const emailData = {
-        orderId: context.params.orderId,
+        orderId: orderId,
         customerName: order.customerInfo.name,
         customerEmail: order.customerInfo.email,
         orderDate: new Date(order.createdAt).toLocaleDateString('es-ES'),
@@ -568,19 +774,23 @@ export const onOrderCreated = functions.firestore
   });
 
 // Trigger automático: Enviar email cuando se actualiza el estado de un pedido
-export const onOrderUpdated = functions.firestore
-  .document('orders/{orderId}')
-  .onUpdate(async (change, context) => {
+export const onOrderUpdated = onDocumentUpdated('orders/{orderId}', async (event) => {
     try {
-      const before = change.before.data();
-      const after = change.after.data();
+      const before = event.data?.before.data();
+      const after = event.data?.after.data();
+      const orderId = event.params?.orderId;
+      
+      if (!before || !after || !orderId) {
+        console.error('❌ No se pudieron obtener los datos del documento');
+        return null;
+      }
       
       // Solo enviar si el estado cambió
       if (before.status !== after.status) {
-        console.log('🔔 Estado de pedido actualizado:', context.params.orderId, after.status);
+        console.log('🔔 Estado de pedido actualizado:', orderId, after.status);
         
         const emailData = {
-          orderId: context.params.orderId,
+          orderId: orderId,
           customerName: after.customerInfo.name,
           customerEmail: after.customerInfo.email,
           status: after.status,
